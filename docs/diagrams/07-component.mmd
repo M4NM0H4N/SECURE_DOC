@@ -1,0 +1,35 @@
+flowchart TB
+  subgraph browser["Browser (client/, served by Express, same origin)"]
+    pages["HTML pages: login, register, student, clerk, hod, admin, audit, request"]
+    css["CSS: tokens, base, components, requests"]
+    js["ES modules: api.js, layout.js, student.js, staff.js, admin.js, audit.js, request.js"]
+  end
+
+  subgraph server["Node.js / Express (server/)"]
+    direction TB
+    sec["Security layer: Helmet CSP, rate limits, JSON size cap, mongo-sanitize, CSRF header check"]
+    mw["authenticate, authorize, validate (express-validator), upload (Multer, memory), errorHandler"]
+    routes["Routes: auth, requests, admin"]
+    ctrl["Controllers (thin)"]
+    svc["Services: auth, user, request, transition, document, audit"]
+    tx["config/transactions: replica-set detection, runInTransaction"]
+    models["Mongoose models: User, Request, AuditLog"]
+  end
+
+  db[("MongoDB single-node replica set<br/>users, requests, auditlogs")]
+  files[["Private file storage<br/>server/uploads (UUID names, not served statically)"]]
+
+  subgraph ops["Delivery"]
+    jenkins["Jenkins pipeline: lint, tests, build check"]
+    compose["Docker Compose: MongoDB (dev and CI)"]
+  end
+
+  js -- "fetch /api (cookie + X-Requested-With)" --> sec
+  pages --> js
+  css --> pages
+  sec --> mw --> routes --> ctrl --> svc
+  svc --> tx
+  svc --> models --> db
+  svc -- "write / read / delete" --> files
+  jenkins -. runs .-> server
+  compose -. provides .-> db

@@ -1,0 +1,59 @@
+{
+  "name": "secure-document-workflow",
+  "version": "1.0.0",
+  "description": "Secure Document Request and Approval Workflow (SDG 16)",
+  "main": "server/server.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "nodemon server/server.js",
+    "seed": "node scripts/seedAdmin.js",
+    "seed:demo": "node scripts/seedDemo.js",
+    "seed:demo:clean": "node scripts/seedDemo.js --clean",
+    "lint": "eslint server scripts",
+    "test": "jest --runInBand --forceExit",
+    "test:unit": "jest --runInBand --forceExit --testNamePattern=[(]unit[)]",
+    "test:ci": "jest --runInBand --forceExit --ci --reporters=default --reporters=jest-junit",
+    "build": "node scripts/verifyBuild.js",
+    "check:atlas": "node scripts/checkAtlas.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.10",
+    "express": "^4.22.3",
+    "express-mongo-sanitize": "^2.2.0",
+    "express-rate-limit": "^8.7.3",
+    "express-validator": "^7.3.2",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.12.0",
+    "multer": "^2.5.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.57.1",
+    "jest": "^30.5.2",
+    "jest-junit": "^17.0.0",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.3.2"
+  },
+  "private": true,
+  "jest": {
+    "testTimeout": 60000,
+    "roots": [
+      "<rootDir>/server/tests"
+    ],
+    "setupFiles": [
+      "<rootDir>/server/tests/setupEnv.js"
+    ]
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

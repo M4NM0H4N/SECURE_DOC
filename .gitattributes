@@ -1,0 +1,10 @@
+# Normalise line endings: the repository stores LF; Windows checkouts do not rewrite files to CRLF.
+# (Render builds on Linux, and shell/CI files must not contain CRLF.)
+* text=auto eol=lf
+
+# Binary files
+*.jpg binary
+*.jpeg binary
+*.png binary
+*.gif binary
+*.ico binary

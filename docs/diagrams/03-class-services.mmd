@@ -1,0 +1,70 @@
+classDiagram
+  direction LR
+
+  class RequestController
+  class AdminController
+  class AuthController
+
+  class authenticate {
+    <<middleware>>
+    verifies JWT cookie
+    reloads user, checks isActive
+  }
+  class authorize {
+    <<middleware>>
+    role gate
+  }
+
+  class RequestService {
+    +scopeFilter(user)
+    +createRequest(student, data)
+    +listRequests(user, query)
+    +getRequestForUser(user, id)
+  }
+  class TransitionService {
+    +transition(actor, id, to, options)
+    +findRule(to, role)
+  }
+  class DocumentService {
+    +uploadFulfilment(actor, id, file)
+    +resolveDownload(user, id)
+    +validateFile(file)
+  }
+  class AuditService {
+    +record(event, session)
+    +recordSafe(event)
+    +listAuditLogs(filter)
+  }
+  class UserService {
+    +createStaff(actor, data)
+    +updateUser(actor, id, changes)
+    +listUsers(query)
+  }
+  class AuthService {
+    +registerStudent(data)
+    +login(email, password)
+    +signToken(userId)
+  }
+  class Transactions {
+    +runInTransaction(fn)
+    +detectMode()
+  }
+
+  RequestController --> authenticate
+  RequestController --> authorize
+  RequestController --> RequestService
+  RequestController --> TransitionService
+  RequestController --> DocumentService
+  AdminController --> UserService
+  AdminController --> AuditService
+  AuthController --> AuthService
+  AuthController --> AuditService
+
+  DocumentService --> RequestService : scopeFilter
+  DocumentService --> TransitionService : APPROVED to FULFILLED
+  TransitionService --> AuditService
+  TransitionService --> Transactions
+  RequestService --> AuditService
+  RequestService --> Transactions
+  UserService --> AuditService
+  UserService --> Transactions

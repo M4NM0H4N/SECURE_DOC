@@ -1,0 +1,84 @@
+classDiagram
+  direction LR
+
+  class User {
+    +ObjectId _id
+    +String name
+    +String email  «unique, lowercase»
+    -String passwordHash  «bcrypt, never returned»
+    +Role role
+    +Department department  «null for ADMIN»
+    +Boolean isActive
+    +Date createdAt
+    +Date updatedAt
+  }
+
+  class Request {
+    +ObjectId _id
+    +ObjectId studentId
+    +Department department  «copied from student profile»
+    +DocumentType documentType
+    +String purpose  «10-500 chars»
+    +Status status
+    +ObjectId reviewedBy
+    +ObjectId decidedBy
+    +String rejectionReason
+    -String documentPath  «UUID filename, never exposed»
+    +Date createdAt
+    +Date updatedAt
+  }
+
+  class StatusHistoryEntry {
+    +Status from
+    +Status to
+    +ObjectId by
+    +Date at
+    +String note
+  }
+
+  class AuditLog {
+    +ObjectId _id
+    +ObjectId actorId
+    +AuditAction action
+    +ObjectId requestId
+    +Object details  «no secrets»
+    +Date timestamp
+  }
+
+  class Role {
+    <<enumeration>>
+    STUDENT
+    CLERK
+    HOD
+    ADMIN
+  }
+
+  class Status {
+    <<enumeration>>
+    PENDING
+    UNDER_REVIEW
+    APPROVED
+    REJECTED
+    FULFILLED
+  }
+
+  class Department {
+    <<enumeration>>
+    CSE
+    ME
+    CIVIL
+    ECE
+    EEE
+  }
+
+  User "1" --> "0..*" Request : submits (studentId)
+  User "1" --> "0..*" Request : reviews (reviewedBy)
+  User "1" --> "0..*" Request : decides (decidedBy)
+  Request "1" *-- "1..*" StatusHistoryEntry : statusHistory
+  User "1" --> "0..*" StatusHistoryEntry : performed (by)
+  User "1" --> "0..*" AuditLog : actor (actorId)
+  Request "1" --> "0..*" AuditLog : subject (requestId)
+  User ..> Role
+  User ..> Department
+  Request ..> Status
+  Request ..> Department

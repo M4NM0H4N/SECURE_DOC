@@ -1,0 +1,20 @@
+# Single-node MongoDB replica set (needed for multi-document transactions).
+# Start:   docker compose up -d
+# First run only, initiate the replica set:
+#   docker exec sdw-mongo mongosh --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"
+#
+# SECURITY: MongoDB here has no authentication, so the published port is bound to
+# the loopback interface only (127.0.0.1). Do NOT change this to "27017:27017".
+# "--bind_ip_all" is inside the container (needed so Docker can reach it); the
+# host-side mapping below is what decides who can connect from outside.
+# Data lives in ./mongo-data (bind mount): never run "docker compose down -v" here.
+services:
+  mongo:
+    image: mongo:7
+    container_name: sdw-mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27017:27017"
+    volumes:
+      - ./mongo-data:/data/db
+    restart: unless-stopped

@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Audit log | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/requests.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header id="topbar"></header>
+  <main id="main" class="container page stack">
+    <div class="req-head">
+      <h1>Audit log</h1>
+      <a class="btn btn--ghost btn--sm" href="/admin/">Back to users</a>
+    </div>
+    <p class="muted">Application-level append-only record of important actions. Read-only.</p>
+    <div id="content" class="stack hidden">
+      <div class="field filter">
+        <label for="action-filter">Event</label>
+        <select class="select" id="action-filter"></select>
+      </div>
+      <section class="card stack">
+        <div id="table-state" class="state"></div>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="sr-only">Audit events, newest first</caption>
+            <thead><tr><th>Time</th><th>Event</th><th>Actor</th><th>Request</th><th>Details</th></tr></thead>
+            <tbody id="log-rows"></tbody>
+          </table>
+        </div>
+        <div class="actions">
+          <button class="btn btn--ghost btn--sm" id="prev" type="button">Previous</button>
+          <button class="btn btn--ghost btn--sm" id="next" type="button">Next</button>
+          <span class="muted" id="page-label"></span>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="/js/audit.js"></script>
+</body>
+</html>

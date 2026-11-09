@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Admin dashboard | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/requests.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header id="topbar"></header>
+  <main id="main" class="container page">
+    <div class="req-head"><h1>User management</h1><a class="btn btn--ghost btn--sm" href="/admin/audit.html">View audit log</a></div>
+    <div id="content" class="stack hidden">
+      <section class="card stack">
+        <h2>Create staff account</h2>
+        <div id="form-alert" class="hidden" role="alert"></div>
+        <form id="staff-form" class="stack" novalidate>
+          <div class="form-row form-row--2">
+            <div class="field"><label for="name">Full name</label><input class="input" id="name" name="name" required maxlength="100"></div>
+            <div class="field"><label for="email">Email</label><input class="input" id="email" name="email" type="email" required maxlength="254"></div>
+          </div>
+          <div class="form-row form-row--2">
+            <div class="field"><label for="role">Role</label>
+              <select class="select" id="role" name="role" required><option value="CLERK">Clerk</option><option value="HOD">HOD</option></select></div>
+            <div class="field"><label for="department">Department</label><select class="select" id="department" name="department" required></select></div>
+          </div>
+          <div class="field"><label for="password">Initial password</label><input class="input" id="password" name="password" type="password" required minlength="8" maxlength="72" autocomplete="new-password"><div class="hint">Share this securely with the staff member. Password change is not part of this MVP.</div></div>
+          <button class="btn" id="submit" type="submit">Create account</button>
+        </form>
+      </section>
+      <section class="card stack">
+        <h2>All users</h2>
+        <div id="table-state" class="state"></div>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="sr-only">All user accounts</caption>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Dept</th><th>Status</th><th><span class="sr-only">Actions</span></th></tr></thead>
+            <tbody id="user-rows"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="/js/admin.js"></script>
+</body>
+</html>

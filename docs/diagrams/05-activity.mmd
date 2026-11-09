@@ -1,0 +1,44 @@
+flowchart TD
+  start([Start]) --> s1
+
+  subgraph Student
+    s1[Log in] --> s2[Choose document type and purpose]
+    s2 --> s3[Submit request]
+    s9[Track status and history]
+    s10[Download document]
+  end
+
+  subgraph System
+    v1{Input valid?}
+    p1[Create request: PENDING, department from profile, audit]
+    f1{File is PDF/PNG/JPG,<br/>signature and extension match,<br/>at most 5 MB?}
+    f2[Store file under random UUID name]
+    f3[Mark FULFILLED + audit, one transaction]
+    f4[Delete stored file, keep APPROVED]
+  end
+
+  subgraph Clerk
+    c1[Open department queue: PENDING]
+    c2[Check submitted information]
+    c3[Move to UNDER_REVIEW]
+    c4[Open APPROVED request]
+    c5[Upload official document]
+  end
+
+  subgraph HOD
+    h1[Open department queue: UNDER_REVIEW]
+    h2{Approve?}
+    h3[Approve: APPROVED]
+    h4[Reject with mandatory reason: REJECTED]
+  end
+
+  s3 --> v1
+  v1 -- no --> s2
+  v1 -- yes --> p1 --> c1 --> c2 --> c3 --> h1 --> h2
+  h2 -- yes --> h3 --> c4 --> c5 --> f1
+  h2 -- no --> h4 --> s9
+  f1 -- no --> c5
+  f1 -- yes --> f2 --> f3
+  f3 -- commit fails --> f4 --> c5
+  f3 -- committed --> s9 --> s10 --> finish([End])
+  h4 --> finish

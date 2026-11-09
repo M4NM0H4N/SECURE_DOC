@@ -1,0 +1,15 @@
+stateDiagram-v2
+  direction LR
+  [*] --> PENDING : Student submits request
+  PENDING --> UNDER_REVIEW : Clerk reviews (same department)
+  UNDER_REVIEW --> APPROVED : HOD approves (same department)
+  UNDER_REVIEW --> REJECTED : HOD rejects, reason required
+  APPROVED --> FULFILLED : Clerk uploads valid document
+  REJECTED --> [*]
+  FULFILLED --> [*]
+
+  note right of PENDING
+    Every transition is one atomic conditional update:
+    filter = id + department + required current status.
+    Any other transition returns 409.
+  end note

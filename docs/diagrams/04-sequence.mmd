@@ -1,0 +1,49 @@
+sequenceDiagram
+  autonumber
+  actor S as Student
+  actor C as Clerk
+  actor H as HOD
+  participant API as Express API
+  participant DB as MongoDB
+  participant FS as Private file storage
+
+  Note over S,API: Every call: auth cookie + CSRF header, then authenticate (reload user, isActive) and authorize (role)
+
+  S->>API: POST /api/requests {documentType, purpose}
+  API->>DB: transaction: insert request (PENDING, department from profile) + audit REQUEST_SUBMITTED
+  DB-->>API: committed
+  API-->>S: 201 request (PENDING)
+
+  C->>API: GET /api/requests?status=PENDING
+  API->>DB: find {department = clerk.department, status}
+  API-->>C: department queue
+  C->>API: PATCH /api/requests/:id/review
+  API->>DB: transaction: findOneAndUpdate{_id, department, status=PENDING} to UNDER_REVIEW + history + audit
+  alt status was not PENDING, or other department
+    DB-->>API: no match
+    API-->>C: 409 invalid transition / 404
+  else matched
+    API-->>C: 200 request (UNDER_REVIEW)
+  end
+
+  H->>API: PATCH /api/requests/:id/approve
+  API->>DB: transaction: findOneAndUpdate{status=UNDER_REVIEW} to APPROVED + history + audit
+  API-->>H: 200 request (APPROVED)
+  Note over H,API: Reject path: PATCH .../reject {reason} requires a 5-500 char reason, result REJECTED
+
+  C->>API: POST /api/requests/:id/document (multipart)
+  API->>API: size cap 5 MB, magic bytes (PDF/PNG/JPG), extension matches content
+  API->>FS: write random-UUID file
+  API->>DB: transaction: findOneAndUpdate{status=APPROVED} to FULFILLED + documentPath + audit x2
+  alt database step fails
+    API->>FS: delete the file
+    API-->>C: error, request stays APPROVED
+  else committed
+    API-->>C: 200 request (FULFILLED)
+  end
+
+  S->>API: GET /api/requests/:id/document
+  API->>DB: find {_id, studentId = me, status = FULFILLED}
+  API->>FS: read file (validated name, inside storage folder)
+  API-->>S: file as attachment (nosniff, no-store)
+  API->>DB: audit DOCUMENT_DOWNLOADED (best effort)

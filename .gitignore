@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Secrets / environment
+.env
+.env.*
+!.env.example
+
+# Private uploaded documents (never commit)
+server/uploads/*
+!server/uploads/.gitignore
+!server/uploads/.gitkeep
+
+# Logs, coverage, build output
+logs/
+*.log
+coverage/
+reports/
+dist/
+build/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# MongoDB local data
+mongo-data/

@@ -1,0 +1,46 @@
+/* Request cards, detail view and history timeline (mobile first). */
+.req-card { display: flex; flex-direction: column; gap: var(--space-2); align-items: flex-start; }
+.req-card:hover { transform: translateY(-2px); }
+.req-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; width: 100%; }
+.req-head h1, .req-head h3 { margin: 0; }
+textarea.input { padding: var(--space-3); min-height: 120px; resize: vertical; }
+
+.meta { display: grid; grid-template-columns: 1fr; gap: var(--space-1) var(--space-4); margin: var(--space-4) 0; }
+.meta dt { font-size: var(--text-sm); color: var(--text-muted); font-weight: 600; }
+.meta dd { margin: 0 0 var(--space-3); overflow-wrap: anywhere; }
+
+.timeline { list-style: none; margin: 0; padding: 0 0 0 var(--space-4); border-left: 2px solid var(--border); }
+.timeline li { position: relative; padding: 0 0 var(--space-4) var(--space-4); }
+.timeline li::before {
+  content: '';
+  position: absolute;
+  left: -9px;
+  top: 6px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--primary);
+  border: 2px solid var(--surface-solid);
+}
+
+@media (min-width: 768px) {
+  .meta { grid-template-columns: 160px 1fr; }
+  .meta dd { margin: 0; }
+}
+
+/* ---- Staff dashboards ---- */
+.actions { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2); }
+.reject-form { width: 100%; margin-top: var(--space-3); }
+.filter { max-width: 280px; }
+
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: var(--text-sm); }
+
+/* ---- Tables: keep columns readable and scroll sideways instead of crushing cells ---- */
+.table { min-width: 720px; }
+.table th,
+.table td:not(.muted) { white-space: nowrap; }
+.table td.muted { min-width: 240px; overflow-wrap: anywhere; }
+/* no extra gap when the hidden state element precedes the table */
+.stack > .hidden + * { margin-top: 0; }
+/* Contain visually-hidden (absolutely positioned) labels inside the scroll area so they cannot widen the page */
+.table-wrap { position: relative; }

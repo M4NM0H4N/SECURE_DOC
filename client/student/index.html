@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Student dashboard | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/requests.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header id="topbar"></header>
+  <main id="main" class="container page">
+    <h1 id="welcome">Loading...</h1>
+    <div id="content" class="stack hidden">
+      <section class="card stack">
+        <h2>Request a document</h2>
+        <div id="form-alert" class="hidden" role="alert"></div>
+        <form id="request-form" class="stack" novalidate>
+          <div class="field">
+            <label for="documentType">Document type</label>
+            <select class="select" id="documentType" name="documentType" required></select>
+          </div>
+          <div class="field">
+            <label for="purpose">Purpose</label>
+            <textarea class="input" id="purpose" name="purpose" required minlength="10" maxlength="500" placeholder="Why do you need this document?"></textarea>
+            <div class="hint" id="purpose-count">0/500</div>
+          </div>
+          <button class="btn" id="submit" type="submit">Submit request</button>
+        </form>
+      </section>
+      <section class="stack">
+        <h2>My requests</h2>
+        <div id="list-state" class="state"></div>
+        <div id="request-list" class="grid"></div>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="/js/student.js"></script>
+</body>
+</html>

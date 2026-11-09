@@ -1,0 +1,49 @@
+flowchart LR
+  student([Student])
+  clerk([Clerk])
+  hod([HOD])
+  admin([Admin])
+
+  subgraph system["Secure Document Request and Approval Workflow"]
+    direction TB
+    uc_reg(Register as student)
+    uc_login(Log in / log out)
+    uc_submit(Submit document request)
+    uc_own(View own requests, status and history)
+    uc_reason(View rejection reason)
+    uc_dl(Download fulfilled document)
+    uc_dept(View department requests)
+    uc_review(Move request to Under Review)
+    uc_upload(Upload document and fulfil request)
+    uc_approve(Approve request)
+    uc_reject(Reject request with reason)
+    uc_staff(Create staff accounts)
+    uc_users(Activate / deactivate users)
+    uc_audit(View audit log)
+    uc_all(View all requests - read only)
+  end
+
+  student --- uc_reg
+  student --- uc_login
+  student --- uc_submit
+  student --- uc_own
+  student --- uc_reason
+  student --- uc_dl
+
+  clerk --- uc_login
+  clerk --- uc_dept
+  clerk --- uc_review
+  clerk --- uc_upload
+  clerk --- uc_dl
+
+  hod --- uc_login
+  hod --- uc_dept
+  hod --- uc_approve
+  hod --- uc_reject
+  hod --- uc_dl
+
+  admin --- uc_login
+  admin --- uc_staff
+  admin --- uc_users
+  admin --- uc_audit
+  admin --- uc_all

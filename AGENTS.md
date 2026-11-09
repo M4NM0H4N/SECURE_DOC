@@ -1,0 +1,49 @@
+# AGENTS.md — Secure Document Request and Approval Workflow
+
+All agents must read this file, `CLAUDE.md` and `.context.md` before changing anything.
+Full plan: `docs/FINAL_IMPLEMENTATION_BLUEPRINT.md`. Backlog: `docs/BACKLOG.md`.
+
+## Objective
+Web app where Students request official documents, Clerks review/fulfil, HODs approve/reject, Admin manages staff and views audit logs. SDG 16. Academic MVP, not a SaaS product.
+
+## Stack
+HTML/CSS/vanilla JS · Node.js + Express · MongoDB + Mongoose · JWT (HttpOnly cookie) + bcryptjs · express-validator · Helmet · express-rate-limit · express-mongo-sanitize · Multer (own PDF/JPG/PNG signature check) · Jest + Supertest (tests use the local Docker replica set) · Jenkins · production on Render + MongoDB Atlas (see `docs/DEPLOYMENT.md`).
+
+## Architecture
+`client/` static frontend, served by Express (same origin) → `server/` (routes → controllers → services → models) → MongoDB + private `server/uploads/`. Business rules (authorization scope, state transitions, audit) live in `server/services/`, not in controllers or the frontend.
+
+## Coding conventions
+- CommonJS, async/await, one responsibility per module.
+- Controllers thin; services hold logic; validators in `server/validators/`.
+- Constants (roles, statuses, departments, document types, transitions) only in `server/config/constants.js`.
+- Response shape: `{ success, data?, message?, errors? }`.
+- Never `innerHTML` with untrusted data in the frontend.
+
+## Security requirements (non-negotiable)
+- No hardcoded secrets; `.env` never committed.
+- Public registration creates `STUDENT` only; role/department never trusted from client for privilege.
+- Backend enforces RBAC + ownership (Student) + department scope (Clerk, HOD). Out-of-scope → 404.
+- `authenticate` re-loads user and checks `isActive` on every request.
+- Status changes only through the atomic transition service; invalid → 409.
+- Rejection requires a reason.
+- Uploads: PDF/JPG/PNG, ≤ 5 MB, magic-byte check, UUID filename, stored outside `client/`, downloads via authenticated endpoint.
+- Audit log is application-level append-only; never claim immutability; no update/delete API; no secrets in details.
+- Do not assume transactions on standalone MongoDB; document actual mode.
+- CSRF: custom header required on state-changing requests.
+- The local Docker MongoDB has no authentication: its port stays bound to `127.0.0.1` only. Never publish it on all interfaces.
+- Tests may only use a local MongoDB (they drop their database). Production uses MongoDB Atlas through `MONGODB_URI` set in the Render dashboard. Never commit connection strings, passwords or `.env`; never print them.
+
+## Testing requirements
+Jest + Supertest, ≥ 30 meaningful tests including the 20 security scenarios in the blueprint §19. Never claim tests passed unless actually run; report real counts.
+
+## Scope restrictions
+No AI approval, QR verify, SMS/email, payments, ERP, analytics, multi-tenant, SLA automation, blockchain. Do not add features outside the blueprint.
+
+## Phase-gate rules
+Work one phase at a time (0–6). Inspect before changing. State planned changes before major work. Implement only the approved phase. Run relevant tests. Report changed files and real results. Update `.context.md` after milestones. **Stop at each gate and wait for approval.**
+
+## File ownership
+One editor at a time. The implementation owner edits project files. Claude Code is a read-only reviewer unless specific files/folders are handed over in writing by the project owner; during a handover the owner pauses edits to those files, then reviews the diff and runs tests before taking ownership back.
+
+## Skills
+Four skills belong in both `.agent/skills/` and `.claude/skills/`: `context-keeper`, `responsive-mobile-first`, `ui-ux-pro-max`, `security-first` (each a folder with `SKILL.md`). Use the project owner's exact definitions; do not invent placeholders. Status: see `.context.md`.

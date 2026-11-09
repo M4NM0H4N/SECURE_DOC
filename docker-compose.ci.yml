@@ -1,0 +1,28 @@
+# MongoDB single-node replica set for CI (Jenkins). Throwaway: no volume, own port.
+# The healthcheck initiates the replica set on first run and reports healthy once
+# it is PRIMARY, so `docker compose up -d --wait` returns only when MongoDB is ready.
+# SECURITY: no authentication, so the published port is loopback-only. The CI
+# tests run on the same host (or in the same network namespace) as this container
+# and connect to localhost:27018. If your Jenkins itself runs inside a container,
+# attach it to a shared Docker network instead of publishing the port.
+services:
+  mongo:
+    image: mongo:7
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    ports:
+      - "127.0.0.1:27018:27017"
+    # Throwaway data lives in RAM. The mongo image declares /data/db and /data/configdb as
+    # anonymous volumes; mounting tmpfs over them means nothing is left behind, so a plain
+    # `docker compose down` is enough and `down -v` is never needed.
+    tmpfs:
+      - /data/db
+      - /data/configdb
+    healthcheck:
+      test: >
+        mongosh --quiet --eval "
+        try { rs.status().myState === 1 ? quit(0) : quit(1) }
+        catch (e) { rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]}); quit(1) }"
+      interval: 3s
+      timeout: 10s
+      retries: 30
+      start_period: 5s
