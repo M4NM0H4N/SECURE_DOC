@@ -26,7 +26,14 @@ An honest list of what the MVP does not do, and what could come next.
 - **No search** and no sorting options beyond status filter and newest-first.
 - **English only.**
 
-### Deployment
+### Multi-tenancy (S1)
+
+- Isolation is enforced in code (resolver, token claim, query plugin) and proved by tests, but it is one shared database: raw driver access and `runUnscoped()` bypass the plugin, so reviewers must check every new use. See [TENANCY.md](TENANCY.md).
+- Institution signup is gated by one owner-issued `SIGNUP_KEY` because e-mail verification does not exist yet (S3/S5). There is no CAPTCHA.
+- Departments and document types are still fixed lists (S2). Staff passwords are still set by the Admin (S3). Uploaded files are still one local folder with random names, not tenant-prefixed object storage (S4).
+- Existing MVP sessions end at migration; there is no suspension or billing yet (S6): a `SUSPENDED` institution simply answers 404.
+
+## Deployment
 - **Uploaded documents live on the server filesystem.** On Render the ordinary filesystem is wiped on every deploy and restart. Persistent disks are paid-only and limit the service to one instance; object storage would need a code change. See [DEPLOYMENT.md](DEPLOYMENT.md).
 - **Atlas network access for Render is unverified.** Render's outbound addresses are shared ranges that are not static; allowlisting them (or buying dedicated IPs) is a manual step.
 - **Production has been prepared, not deployed.**

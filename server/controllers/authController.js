@@ -17,14 +17,14 @@ const register = asyncHandler(async (req, res) => {
 const login = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
   const user = await authService.login(email, password);
-  const token = authService.signToken(user._id);
-  res.cookie(config.cookieName, token, authService.cookieOptions());
+  const token = authService.signToken(user._id, req.tenant._id);
+  res.cookie(config.cookieName, token, authService.cookieOptions(req.tenant.slug));
   await auditService.recordSafe({ actorId: user._id, action: 'USER_LOGIN' });
   return ok(res, { user }, 200, 'Login successful');
 });
 
 const logout = (req, res) => {
-  const opts = authService.cookieOptions();
+  const opts = authService.cookieOptions(req.tenant.slug);
   delete opts.maxAge;
   res.clearCookie(config.cookieName, opts);
   return ok(res, undefined, 200, 'Logged out');

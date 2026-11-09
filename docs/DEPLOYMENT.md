@@ -48,7 +48,7 @@ Render injects `PORT` (10000 by default). The app listens on it and binds `0.0.0
 | `TRUST_PROXY` | optional | defaults to `1` in production, which matches Render's single proxy hop. Whole numbers only. |
 | `JWT_EXPIRES_IN`, `COOKIE_NAME`, `MAX_UPLOAD_MB`, `HOST` | optional | defaults are fine |
 
-Do **not** set in production: `MONGODB_URI_TEST`, `MONGODB_ATLAS_URI`, `DEMO_PASSWORD`. Set `INITIAL_ADMIN_*` only for the moment you run the seed (section 7), then delete them.
+Do **not** set in production: `MONGODB_URI_TEST`, `MONGODB_ATLAS_URI`, `DEMO_PASSWORD`. Set `SUPER_ADMIN_*` only for the moment you run the seed (section 7), then delete them. Set `SIGNUP_KEY` only while institutions are being created.
 
 Production cookies are `HttpOnly`, `SameSite=Strict` and `Secure`; HSTS and the CSP `upgrade-insecure-requests` directive are enabled only when `NODE_ENV=production`. There is no CORS middleware on purpose: the pages and the API share one origin.
 
@@ -82,13 +82,15 @@ Database backups (Atlas) do **not** include these files; back up the disk separa
 
 ## 7. First admin account (needs explicit owner approval)
 
-The production database starts empty. After the first successful deploy, create the first Admin once, from the Render **Shell** tab, with `INITIAL_ADMIN_EMAIL` and `INITIAL_ADMIN_PASSWORD` temporarily set in the dashboard:
+The production database starts empty. There is no single global Admin any more: each institution is created through signup (`POST /api/platform/signup`, page `/signup.html`), which creates the institution and its first Admin. Signup is closed unless you set `SIGNUP_KEY` (16+ characters) in the Render dashboard; set it only while you are creating institutions and share it only with people you invite.
+
+If you want a platform owner (SUPER_ADMIN, lists institutions only), run once from the Render **Shell** tab with `SUPER_ADMIN_EMAIL` and `SUPER_ADMIN_PASSWORD` (12+ characters) temporarily set:
 
 ```bash
-npm run seed
+npm run seed:superadmin
 ```
 
-Then remove those two variables. Never run `npm run seed:demo` in production (it refuses when `NODE_ENV=production`).
+Then remove those two variables. If production already holds single-tenant MVP data, run `npm run migrate:tenants` (dry run) and then `-- --apply` once, on a copy first. See [TENANCY.md](TENANCY.md). Never run `npm run seed:demo` in production (it refuses when `NODE_ENV=production`).
 
 ## 8. Deployment checklist
 
@@ -111,7 +113,7 @@ After the first deploy:
 
 - [ ] Logs show `MongoDB transaction mode: replica` and no upload-storage warning
 - [ ] `https://<your-service>.onrender.com/healthz` returns `{"status":"ok"}`
-- [ ] Run the seed once (section 7), then remove the seed variables
+- [ ] Create the first institution through signup (section 7) and remove `SIGNUP_KEY` afterwards if no more are expected
 - [ ] Register a test student over HTTPS; the `sdw_token` cookie is `HttpOnly`, `Secure`, `SameSite=Strict`
 - [ ] Run the demonstration flow (`docs/DEMO.md`), upload a document, **restart the service**, and confirm the document still downloads (proves the disk)
 - [ ] Remove any temporary Atlas `0.0.0.0/0` entry

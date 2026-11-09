@@ -1,4 +1,4 @@
-import { api, el } from './api.js';
+import { api, el, tpath, apiUrl } from './api.js';
 import { STATUS_LABELS, statusBadge, formatDate } from './format.js';
 import { requireUser, showAlert, hideAlert } from './layout.js';
 
@@ -97,7 +97,7 @@ function init() {
 
     const actions = el('div', { class: 'actions' });
     actions.append(
-      el('a', { class: 'btn btn--ghost btn--sm', href: `/request.html?id=${encodeURIComponent(r._id)}`, text: 'Details' })
+      el('a', { class: 'btn btn--ghost btn--sm', href: tpath(`/request.html?id=${encodeURIComponent(r._id)}`), text: 'Details' })
     );
 
     if (ROLE === 'CLERK' && r.status === 'PENDING') {
@@ -114,7 +114,7 @@ function init() {
     }
     if (r.status === 'FULFILLED') {
       actions.append(
-        el('a', { class: 'btn btn--ghost btn--sm', href: `/api/requests/${encodeURIComponent(r._id)}/document`, download: '', text: 'Download document' })
+        el('a', { class: 'btn btn--ghost btn--sm', href: apiUrl(`/requests/${encodeURIComponent(r._id)}/document`), download: '', text: 'Download document' })
       );
     }
     node.append(actions);

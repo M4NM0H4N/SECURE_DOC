@@ -14,6 +14,9 @@ const { notFound, errorHandler } = require('./middleware/errorHandler');
 const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const requestRoutes = require('./routes/requestRoutes');
+const platformRoutes = require('./routes/platformRoutes');
+const resolveTenant = require('./middleware/resolveTenant');
+const { SLUG_PATTERN } = require('./models/Tenant');
 
 function createApp({
   authRateLimitMax = 20,
@@ -83,16 +86,37 @@ function createApp({
 
   app.use('/api', makeLimiter(apiRateLimitMax, 'Too many requests. Please slow down.'));
   app.use('/api', csrf);
+
+  // Platform level: institution signup and SUPER_ADMIN (no tenant in the path).
+  app.use('/api/platform/signup', authLimiter(false));
+  app.use('/api/platform/auth/login', authLimiter(true));
+  app.use('/api/platform', platformRoutes);
+
+  // Everything institution-specific lives under /api/t/:slug. resolveTenant runs first and
+  // opens the tenant context, so no route below can run without a tenant.
+  const tenantApi = express.Router({ mergeParams: true });
+  tenantApi.use(resolveTenant);
   // Uploads are the most expensive endpoint, so they get their own stricter limit.
-  app.post('/api/requests/:id/document', makeLimiter(uploadRateLimitMax, 'Too many uploads. Please try again later.'));
-  app.use('/api/auth/login', authLimiter(true));
-  app.use('/api/auth/register', authLimiter(false));
-  app.use('/api/auth', authRoutes);
-  app.use('/api/admin', adminRoutes);
-  app.use('/api/requests', requestRoutes);
+  tenantApi.post('/requests/:id/document', makeLimiter(uploadRateLimitMax, 'Too many uploads. Please try again later.'));
+  tenantApi.use('/auth/login', authLimiter(true));
+  tenantApi.use('/auth/register', authLimiter(false));
+  tenantApi.use('/auth', authRoutes);
+  tenantApi.use('/admin', adminRoutes);
+  tenantApi.use('/requests', requestRoutes);
+  app.use('/api/t/:slug', tenantApi);
   app.use('/api', notFound);
 
-  app.use(express.static(path.join(__dirname, '..', 'client')));
+  const clientDir = path.join(__dirname, '..', 'client');
+  // The same static client is served under each institution's address; its pages read the
+  // slug from the URL. Malformed slugs fall through to the 404 page.
+  const validSlug = (req, _res, next) => (SLUG_PATTERN.test(req.params.slug) ? next() : next('router'));
+  // The institution's own home page is home.html; the bare /t/<slug> redirects so relative links work.
+  app.get('/t/:slug', validSlug, (req, res) => {
+    if (!req.path.endsWith('/')) return res.redirect(302, `/t/${req.params.slug}/`);
+    return res.sendFile(path.join(clientDir, 'home.html'));
+  });
+  app.use('/t/:slug', validSlug, express.static(clientDir, { index: 'index.html' }));
+  app.use(express.static(clientDir));
 
   // Unknown pages get a friendly HTML 404; anything else gets the JSON 404.
   app.use((req, res, next) => {

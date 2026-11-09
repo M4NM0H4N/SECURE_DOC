@@ -21,6 +21,8 @@ const config = require('../server/config/env');
 const User = require('../server/models/User');
 const Request = require('../server/models/Request');
 const AuditLog = require('../server/models/AuditLog');
+const Tenant = require('../server/models/Tenant');
+const { runAsTenant, runUnscoped } = require('../server/utils/tenantContext');
 const authService = require('../server/services/authService');
 const requestService = require('../server/services/requestService');
 const documentService = require('../server/services/documentService');
@@ -44,7 +46,9 @@ const PDF = Buffer.from(
     '3 0 obj<</Type/Page/Parent 2 0 R/MediaBox[0 0 300 100]>>endobj\ntrailer<</Root 1 0 R>>\n%%EOF\n'
 );
 
-async function clean() {
+const DEMO_SLUG = 'demo';
+
+async function clean(tenant) {
   const users = await User.find({ email: DEMO_EMAIL });
   const ids = users.map((u) => u._id);
   const requests = await Request.find({ studentId: { $in: ids } }).select('+documentPath');
@@ -52,7 +56,7 @@ async function clean() {
     if (r.documentPath) fs.rmSync(path.join(config.uploadDir, r.documentPath), { force: true });
   }
   // Native call: the AuditLog model deliberately blocks deletes.
-  await AuditLog.collection.deleteMany({ $or: [{ actorId: { $in: ids } }, { requestId: { $in: requests.map((r) => r._id) } }] });
+  await AuditLog.collection.deleteMany({ tenantId: tenant._id, $or: [{ actorId: { $in: ids } }, { requestId: { $in: requests.map((r) => r._id) } }] });
   await Request.deleteMany({ _id: { $in: requests.map((r) => r._id) } });
   await User.deleteMany({ _id: { $in: ids } });
   console.log(`Removed ${ids.length} demo users and ${requests.length} demo requests.`);
@@ -115,15 +119,18 @@ async function seed() {
   void hodMe;
 
   console.log('Demo data created: 8 accounts, 9 requests across every status.');
-  console.log('Sign in with any "*.demo@example.com" account using DEMO_PASSWORD from your .env file.');
+  console.log('Open /t/demo/ and sign in with any "*.demo@example.com" account using DEMO_PASSWORD from your .env file.');
   console.log('Accounts: ' + ACCOUNTS.map((a) => a[1]).join(', '));
 }
 
 (async () => {
   await mongoose.connect(config.mongoUri);
   try {
-    if (process.argv.includes('--clean')) await clean();
-    else await seed();
+    // Demo data lives in its own institution, served at /t/demo/.
+    let tenant = await runUnscoped(() => Tenant.findOne({ slug: DEMO_SLUG }));
+    if (!tenant) tenant = await runUnscoped(() => Tenant.create({ slug: DEMO_SLUG, name: 'Demo Institution' }));
+    if (process.argv.includes('--clean')) await runAsTenant(tenant._id, () => clean(tenant));
+    else await runAsTenant(tenant._id, () => seed());
   } finally {
     await mongoose.disconnect();
   }

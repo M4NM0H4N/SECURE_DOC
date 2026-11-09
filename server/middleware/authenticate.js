@@ -21,6 +21,12 @@ const authenticate = asyncHandler(async (req, _res, next) => {
     throw new AppError(401, 'Invalid or expired session');
   }
 
+  // The session belongs to one institution. A token from another tenant (or a platform
+  // token) is rejected, even if the user id exists, so sessions never cross tenants.
+  if (!req.tenant || typeof payload.tid !== 'string' || payload.tid !== String(req.tenant._id)) {
+    throw new AppError(401, 'Invalid or expired session');
+  }
+
   const user = await User.findById(payload.sub);
   if (!user) {
     throw new AppError(401, 'Invalid or expired session');

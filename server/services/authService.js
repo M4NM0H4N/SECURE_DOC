@@ -14,20 +14,22 @@ const DUMMY_HASH = bcrypt.hashSync('dummy-password-for-timing', BCRYPT_COST);
 const hashPassword = (plain) => bcrypt.hash(plain, BCRYPT_COST);
 const verifyPassword = (plain, hash) => bcrypt.compare(plain, hash);
 
-function signToken(userId) {
-  return jwt.sign({ sub: String(userId) }, config.jwtSecret, {
+function signToken(userId, tenantId) {
+  return jwt.sign({ sub: String(userId), tid: String(tenantId) }, config.jwtSecret, {
     algorithm: 'HS256',
     expiresIn: config.jwtExpiresIn,
   });
 }
 
-function cookieOptions() {
+// The cookie is scoped to one institution's API path, so a browser never sends tenant A's
+// session to tenant B.
+function cookieOptions(slug) {
   return {
     httpOnly: true,
     secure: config.isProd,
     sameSite: 'strict',
     maxAge: config.cookieMaxAgeMs,
-    path: '/',
+    path: `/api/t/${slug}`,
   };
 }
 
@@ -51,6 +53,7 @@ async function login(email, password) {
 }
 
 module.exports = {
+  DUMMY_HASH,
   hashPassword,
   verifyPassword,
   signToken,

@@ -7,12 +7,11 @@ A step-by-step script for the final demonstration, plus talking points for the p
 ```bash
 docker compose up -d
 npm install
-npm run seed            # once: the first Admin from .env
-npm run seed:demo       # demo accounts and requests in every status
-npm start               # http://localhost:3000
+npm run seed:demo       # demo institution (/t/demo/) with accounts and requests in every status
+npm start               # http://localhost:3000, then open /t/demo/
 ```
 
-`npm run seed:demo` needs `DEMO_PASSWORD` in `.env` (see `.env.example`). It creates eight accounts, all ending in `.demo@example.com`, and nine requests through the real workflow (so the audit trail is genuine). It refuses to run in production. When finished: `npm run seed:demo:clean`.
+`npm run seed:demo` needs `DEMO_PASSWORD` in `.env` (see `.env.example`). It creates an institution with the address `demo` and eight accounts, all ending in `.demo@example.com`, and nine requests through the real workflow (so the audit trail is genuine). It refuses to run in production. When finished: `npm run seed:demo:clean`.
 
 | Account | Role | Department |
 |---|---|---|
@@ -60,7 +59,7 @@ For a rehearsed, repeatable version of all of this, run `npm test`: the `e2e.tes
 - **Server-side enforcement:** hiding a button is not security; every rule is checked on the backend and tested.
 - **Integrity:** status changes are atomic; the status change and its audit record commit together in a transaction; files are written first and removed if anything fails.
 - **Honest limits:** audit log is append-only at application level, not immutable; transactions need a replica set; see [LIMITATIONS.md](LIMITATIONS.md).
-- **Process:** built in six reviewed phases; 238 automated tests; CI pipeline defined (not yet run on a Jenkins server).
+- **Process:** built in six reviewed phases; 274 automated tests; CI pipeline defined (not yet run on a Jenkins server).
 
 ## Suggested slide outline
 1. Problem and SDG 16 link
@@ -68,5 +67,5 @@ For a rehearsed, repeatable version of all of this, run `npm test`: the `e2e.tes
 3. Architecture (component diagram)
 4. Security design (RBAC, scope, atomic transitions, private files, audit)
 5. Live demo
-6. Testing evidence (238 tests, required security scenarios)
+6. Testing evidence (274 tests, required security scenarios)
 7. Limitations and future work

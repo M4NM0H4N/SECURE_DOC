@@ -2,6 +2,8 @@
 
 Base path: `/api`. JSON in, JSON out (uploads use `multipart/form-data`).
 
+**Institutions (SaaS S1).** Every institution endpoint in this document is served under the institution's address: `/api/auth/login` below means `POST /api/t/<slug>/auth/login`, `/api/requests` means `/api/t/<slug>/requests`, and so on. An unknown, malformed or suspended `<slug>` answers `404 Institution not found`. The un-prefixed paths do not exist. A session works only for the institution it was issued by (the token carries the tenant and the cookie is scoped to `/api/t/<slug>`); anything else is `401`. Platform-level endpoints are described in "Platform" below. See [TENANCY.md](TENANCY.md).
+
 ## Conventions
 
 **Authentication.** Login sets an HttpOnly, `SameSite=Strict` cookie (`sdw_token`, `Secure` in production). There is no token in the response body and nothing for scripts to store. Every protected call reloads the user from the database, so deactivation takes effect immediately.
@@ -31,7 +33,7 @@ Base path: `/api`. JSON in, JSON out (uploads use `multipart/form-data`).
 
 **Rate limits (per IP, 15-minute window).** Login 20 failed attempts (successful logins are not counted), registration 20, uploads 30, whole API 1000.
 
-**Enumerations.** Roles: `STUDENT CLERK HOD ADMIN`. Departments: `CSE ME CIVIL ECE EEE`. Statuses: `PENDING UNDER_REVIEW APPROVED REJECTED FULFILLED`. Document types: `Bonafide Certificate`, `Fee Receipt`, `Transcript`, `Transfer Certificate`, `Character Certificate`, `Other`.
+**Enumerations.** Roles: `STUDENT CLERK HOD ADMIN` (plus the tenantless `SUPER_ADMIN`, platform routes only). Departments: `CSE ME CIVIL ECE EEE`. Statuses: `PENDING UNDER_REVIEW APPROVED REJECTED FULFILLED`. Document types: `Bonafide Certificate`, `Fee Receipt`, `Transcript`, `Transfer Certificate`, `Character Certificate`, `Other`.
 
 ## Access summary
 
@@ -47,6 +49,28 @@ Base path: `/api`. JSON in, JSON out (uploads use `multipart/form-data`).
 | `GET /requests/:id/document` | own | own department | own department | - (403) |
 | `GET/POST/PATCH /admin/users` | - | - | - | yes |
 | `GET /admin/audit-logs` | - | - | - | yes |
+
+---
+
+## Platform (no tenant in the path)
+
+### POST /api/platform/signup
+Creates an institution and its first Admin in one transaction and audits `TENANT_CREATED`. Closed (`403`) unless the server has `SIGNUP_KEY`; a wrong key is `403`. Needs the CSRF header; rate limited like registration.
+
+| Field | Rule |
+|---|---|
+| `institutionName` | 2-120 characters |
+| `slug` | 3-30 characters: lowercase letters, digits, hyphens; not a reserved word. Becomes `/t/<slug>/` |
+| `adminName`, `adminEmail`, `adminPassword` | same rules as registration |
+| `signupKey` | the owner-issued key |
+
+Success `201 { tenant: { name, slug } }`. Taken slug: `409`.
+
+### POST /api/platform/auth/login, POST /api/platform/auth/logout
+SUPER_ADMIN only. Separate cookie (`sdw_token_platform`, `Path=/api/platform`) and token claim, so a tenant session does not work here and a platform session does not work on tenant routes. Sign-in is audited as `PLATFORM_LOGIN` (no tenant, invisible to tenant admins).
+
+### GET /api/platform/tenants
+SUPER_ADMIN only. Lists institutions (`name`, `slug`, `status`). No tenant data is reachable from the platform area.
 
 ---
 

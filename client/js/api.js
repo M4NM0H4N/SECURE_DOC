@@ -1,11 +1,19 @@
 // Thin fetch wrapper. Sends the CSRF header; auth cookie is HttpOnly (not readable here).
 export const DEPARTMENTS = ['CSE', 'ME', 'CIVIL', 'ECE', 'EEE'];
 
+// The institution comes from the page address: /t/<slug>/... Without it there is nothing to
+// talk to, so go to the institution chooser.
+const match = location.pathname.match(/^\/t\/([a-z0-9-]+)(?:\/|$)/);
+export const SLUG = match ? match[1] : null;
+if (!SLUG) location.replace('/');
+export const tpath = (p) => `/t/${SLUG}${p}`;
+export const apiUrl = (p) => `/api/t/${SLUG}${p}`;
+
 export const ROLE_HOME = {
-  STUDENT: '/student/',
-  CLERK: '/clerk/',
-  HOD: '/hod/',
-  ADMIN: '/admin/',
+  STUDENT: tpath('/student/'),
+  CLERK: tpath('/clerk/'),
+  HOD: tpath('/hod/'),
+  ADMIN: tpath('/admin/'),
 };
 
 export async function api(path, { method = 'GET', body } = {}) {
@@ -20,7 +28,7 @@ export async function api(path, { method = 'GET', body } = {}) {
   }
   let res;
   try {
-    res = await fetch(`/api${path}`, opts);
+    res = await fetch(apiUrl(path), opts);
   } catch (_e) {
     throw Object.assign(new Error('Network error. Please check your connection.'), { status: 0 });
   }
@@ -32,12 +40,12 @@ export async function api(path, { method = 'GET', body } = {}) {
   }
   // Account deactivated while signed in: leave immediately and say why.
   if (res.status === 403 && data.message === 'Account is deactivated' && !path.startsWith('/auth/')) {
-    location.replace('/login.html?reason=deactivated');
+    location.replace(tpath('/login.html?reason=deactivated'));
     throw Object.assign(new Error(data.message), { status: 403 });
   }
   // Session expired or cleared mid-use: go back to login (auth endpoints handle their own 401s).
   if (res.status === 401 && !path.startsWith('/auth/')) {
-    location.replace('/login.html');
+    location.replace(tpath('/login.html'));
     throw Object.assign(new Error('Your session has expired. Please sign in again.'), { status: 401 });
   }
   if (!res.ok) {

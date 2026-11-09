@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 const { DEPARTMENTS, DOCUMENT_TYPES, REQUEST_STATUSES } = require('../config/constants');
+const tenantScope = require('./plugins/tenantScope');
 
 const historySchema = new mongoose.Schema(
   {
@@ -37,7 +38,9 @@ const requestSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-requestSchema.index({ department: 1, status: 1, createdAt: -1 });
+requestSchema.plugin(tenantScope);
+requestSchema.index({ tenantId: 1, department: 1, status: 1, createdAt: -1 });
+requestSchema.index({ tenantId: 1, studentId: 1, createdAt: -1 });
 
 requestSchema.set('toJSON', {
   transform(_doc, ret) {

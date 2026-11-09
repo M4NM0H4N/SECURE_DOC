@@ -27,7 +27,10 @@ const required = [
   'server/server.js',
   'server/config/storage.js',
   'server/config/mongoUri.js',
-  'scripts/seedAdmin.js',
+  'scripts/seedSuperAdmin.js',
+  'scripts/migrateToTenants.js',
+  'client/home.html',
+  'client/signup.html',
   '.env.example',
 ];
 
@@ -59,8 +62,9 @@ function get(port, urlPath) {
   try {
     const checks = [
       ['/login.html', 200],
-      ['/api/auth/me', 401], // protected route rejects anonymous callers
-      ['/api/admin/users', 401],
+      ['/t/demo-college/login.html', 200], // the client is served under an institution address
+      ['/api/platform/tenants', 401], // platform routes reject anonymous callers
+      ['/api/auth/me', 404], // the old un-prefixed API no longer exists
       ['/definitely-not-a-page', 404],
       ['/.env', 404],
       ['/healthz', 503], // no database in this check, so "not ready" is the correct answer
@@ -72,6 +76,6 @@ function get(port, urlPath) {
   } finally {
     server.close();
   }
-  console.log(`Build verification passed (${required.length} files, 6 HTTP checks).`);
+  console.log(`Build verification passed (${required.length} files, 7 HTTP checks).`);
   process.exit(0);
 })().catch((err) => fail(err.message));

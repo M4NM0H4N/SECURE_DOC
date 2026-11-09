@@ -37,6 +37,9 @@ const config = {
   jwtSecret: required('JWT_SECRET'),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || '2h',
   cookieName: process.env.COOKIE_NAME || 'sdw_token',
+  // Institution self-signup is closed unless the owner sets SIGNUP_KEY (until e-mail
+  // verification exists in S3). Never logged, never sent to the client.
+  signupKey: process.env.SIGNUP_KEY || '',
   cookieMaxAgeMs: 2 * 60 * 60 * 1000,
   // Private storage, outside client/ (never served statically).
   uploadDir: path.resolve(__dirname, '..', '..', process.env.UPLOAD_DIR || 'server/uploads'),
@@ -46,6 +49,10 @@ const config = {
 
 if (config.jwtSecret.length < 32) {
   throw new Error('JWT_SECRET must be at least 32 characters');
+}
+
+if (config.signupKey && config.signupKey.length < 16) {
+  throw new Error('SIGNUP_KEY must be at least 16 characters (or leave it unset to close signup)');
 }
 
 // A connection string can never contain whitespace (it must be %-encoded). Stray spaces

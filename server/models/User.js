@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 const { ROLES, DEPARTMENTS } = require('../config/constants');
+const tenantScope = require('./plugins/tenantScope');
 
 const userSchema = new mongoose.Schema(
   {
@@ -9,7 +10,6 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       required: true,
-      unique: true,
       lowercase: true,
       trim: true,
       maxlength: 254,
@@ -22,13 +22,22 @@ const userSchema = new mongoose.Schema(
       enum: DEPARTMENTS,
       default: null,
       required() {
-        return this.role !== ROLES.ADMIN;
+        return this.role !== ROLES.ADMIN && this.role !== ROLES.SUPER_ADMIN;
       },
     },
     isActive: { type: Boolean, default: true },
   },
   { timestamps: true }
 );
+
+// Staff and students always belong to a tenant; only a SUPER_ADMIN has none.
+userSchema.plugin(tenantScope, {
+  required() {
+    return this.role !== ROLES.SUPER_ADMIN;
+  },
+});
+// The same email may exist in two institutions, never twice in one.
+userSchema.index({ tenantId: 1, email: 1 }, { unique: true });
 
 userSchema.set('toJSON', {
   transform(_doc, ret) {

@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Home | DocFlow</title>
+  <title>Find your institution | DocFlow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
@@ -14,7 +14,24 @@
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
-  <main id="main" class="center-screen"><p class="muted">Redirecting...</p></main>
-  <script type="module" src="/js/home.js"></script>
+  <main id="main" class="center-screen">
+    <section class="card card--auth stack">
+      <div>
+        <h1>DocFlow</h1>
+        <p class="muted">Enter your institution's address to sign in.</p>
+      </div>
+      <div id="form-alert" class="hidden" role="alert"></div>
+      <form id="start-form" class="stack" novalidate>
+        <div class="field">
+          <label for="slug">Institution address</label>
+          <input class="input" id="slug" name="slug" type="text" required autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30" placeholder="for example: kle-tech">
+          <div class="field-error" id="err-slug" role="alert"></div>
+        </div>
+        <button class="btn btn--block" type="submit">Continue</button>
+      </form>
+      <p class="muted">New institution? <a href="/signup.html">Register it</a></p>
+    </section>
+  </main>
+  <script type="module" src="/js/start.js"></script>
 </body>
 </html>

@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
-    "seed": "node scripts/seedAdmin.js",
+    "seed:superadmin": "node scripts/seedSuperAdmin.js",
+    "migrate:tenants": "node scripts/migrateToTenants.js",
     "seed:demo": "node scripts/seedDemo.js",
     "seed:demo:clean": "node scripts/seedDemo.js --clean",
     "lint": "eslint server scripts",

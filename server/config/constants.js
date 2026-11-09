@@ -5,6 +5,8 @@ const ROLES = Object.freeze({
   CLERK: 'CLERK',
   HOD: 'HOD',
   ADMIN: 'ADMIN',
+  // Platform operator: tenantless, never reads document contents (S1).
+  SUPER_ADMIN: 'SUPER_ADMIN',
 });
 
 // Roles an Admin may create through POST /api/admin/users (never ADMIN, never STUDENT)
@@ -50,6 +52,8 @@ const AUDIT_ACTIONS = Object.freeze([
   'DOCUMENT_UPLOADED',
   'REQUEST_FULFILLED',
   'DOCUMENT_DOWNLOADED',
+  'TENANT_CREATED',
+  'PLATFORM_LOGIN',
 ]);
 
 module.exports = {

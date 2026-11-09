@@ -18,7 +18,7 @@ npm audit --omit=dev          # production dependency check
 | Check | Result |
 |---|---|
 | Test suites | 10 passed, 0 failed |
-| Tests | **238 passed, 0 failed** (requirement: at least 30) |
+| Tests | **274 passed, 0 failed** in 12 suites (requirement: at least 30). 238 are the MVP tests, adapted to the tenant paths; 36 are new (tenancy 31, migration 5) |
 | ESLint (`server`, `scripts`) | 0 errors, 0 warnings |
 | `npm audit --omit=dev` | 0 vulnerabilities |
 
@@ -93,6 +93,14 @@ Done in the built-in browser during development, with throwaway demo data that w
 - `NODE_ENV=production` with the local database URI refuses to start, as designed.
 - The Atlas connection and a read-only transaction work from the development computer once whitespace is removed from the connection string (see [DEPLOYMENT.md](DEPLOYMENT.md)). The string stored in `.env` still fails with `bad auth` until that is fixed.
 - A real Render deployment has not been performed.
+
+## Multi-tenancy (S1, checked 2026-11-09)
+
+- `tenancy.test.js` (31) and `migration.test.js` (5), described in [TENANCY.md](TENANCY.md). The MVP suites now call `/api/t/default/...` through a helper that adds the tenant segment, so the real routing runs in every test.
+- Mutation check: removing the query-scoping line from the plugin made 11 tenancy tests fail (restored afterwards).
+- A browser smoke test on a throwaway database: signup at `/signup.html` redirected to `/t/smoke-college/login.html`, the Admin dashboard loaded under the tenant path with only that tenant's user, relative links resolved inside the tenant, and logout returned to the tenant sign-in. The scratch database was dropped.
+- The bad-slug, suspended and unknown institution responses are identical (404).
+- The test-only default-tenant fallback exists only when `NODE_ENV=test`; the tenancy and migration suites switch it off.
 
 ## Not covered (be honest in the report)
 

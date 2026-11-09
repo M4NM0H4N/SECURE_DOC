@@ -1,4 +1,4 @@
-import { api, el, ROLE_HOME } from './api.js';
+import { api, el, ROLE_HOME, apiUrl } from './api.js';
 import { statusBadge, formatDate, STATUS_LABELS } from './format.js';
 import { requireUser } from './layout.js';
 
@@ -31,7 +31,7 @@ async function init() {
         ? el('div', { class: 'alert alert--error', text: `Rejection reason: ${r.rejectionReason}` })
         : '',
       r.status === 'FULFILLED' && user.role !== 'ADMIN'
-        ? el('div', { class: 'actions' }, el('a', { class: 'btn btn--sm', href: `/api/requests/${encodeURIComponent(r._id)}/document`, download: '', text: 'Download document' }))
+        ? el('div', { class: 'actions' }, el('a', { class: 'btn btn--sm', href: apiUrl(`/requests/${encodeURIComponent(r._id)}/document`), download: '', text: 'Download document' }))
         : '',
       el('h2', { text: 'History' }),
       timeline(r.statusHistory)

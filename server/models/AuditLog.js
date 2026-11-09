@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 const { AUDIT_ACTIONS } = require('../config/constants');
+const tenantScope = require('./plugins/tenantScope');
 
 // Application-level append-only audit trail. There is no update or delete API,
 // and the hooks below make the Mongoose model refuse them too. This is NOT
@@ -16,6 +17,10 @@ const auditLogSchema = new mongoose.Schema(
   },
   { versionKey: false }
 );
+
+// tenantId is null only for platform events (SUPER_ADMIN login); tenant admins never see those.
+auditLogSchema.plugin(tenantScope, { required: false });
+auditLogSchema.index({ tenantId: 1, timestamp: -1 });
 
 const BLOCKED = [
   'updateOne',

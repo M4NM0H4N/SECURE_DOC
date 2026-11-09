@@ -10,9 +10,9 @@ The pipeline is defined in the root `Jenkinsfile` (declarative). It never deploy
 | Install dependencies | `npm ci` | Lock file is consistent, clean install works |
 | Lint | `npm run lint` | ESLint passes on `server/` and `scripts/` |
 | Start MongoDB (replica set) | `docker compose -f docker-compose.ci.yml -p sdw-ci up -d --wait` | A real replica set is ready (its healthcheck initiates and waits for PRIMARY) |
-| Unit tests | `npm run test:unit` | The pure-logic tests (42, tagged "(unit)") pass |
-| Integration, security and end-to-end tests | `npm run test:ci` | The full suite (238 tests) passes and a JUnit report is written to `reports/junit.xml` |
-| Build verification | `npm run build` | The app loads, required files exist, and a real HTTP server answers 6 checks (no database needed) |
+| Unit tests | `npm run test:unit` | The pure-logic tests (49, tagged "(unit)") pass |
+| Integration, security and end-to-end tests | `npm run test:ci` | The full suite (274 tests) passes and a JUnit report is written to `reports/junit.xml` |
+| Build verification | `npm run build` | The app loads, required files exist, and a real HTTP server answers 7 checks (no database needed) |
 | Deploy (optional) | placeholder, only if parameter `DEPLOY` is ticked | Nothing is deployed until a target is configured |
 
 After every run (pass or fail) the JUnit results are published and the CI database is removed (`docker compose ... down`; the CI database lives in RAM, so no volumes remain).
@@ -28,8 +28,8 @@ After every run (pass or fail) the JUnit results are published and the CI databa
 Verified locally, using the same commands as the pipeline:
 - `npm ci --dry-run`, `npm run lint`, `npm run build`: pass
 - The CI MongoDB container from `docker-compose.ci.yml` started and reported healthy
-- `npm run test:unit`: 42 passed (196 skipped by the filter)
-- `npm run test:ci`: 238 passed, `reports/junit.xml` created
+- `npm run test:unit`: 49 passed (225 skipped by the filter)
+- `npm run test:ci`: 274 passed against the local development replica set (the CI container itself was not started for S1), `reports/junit.xml` created
 - The CI container was removed afterwards
 
 **Not verified:** the `Jenkinsfile` itself has not been executed by a Jenkins server, so Groovy syntax and plugin availability are untested. Run it once on your Jenkins and fix any environment-specific issue (for example, a Windows agent would need `bat` instead of `sh`).

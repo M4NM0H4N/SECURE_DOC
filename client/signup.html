@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Register an institution | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main" class="center-screen">
+    <section class="card card--auth stack">
+      <div>
+        <h1>Register an institution</h1>
+        <p class="muted">Registration is currently by invitation. You need the signup key from the platform owner.</p>
+      </div>
+      <div id="form-alert" class="hidden" role="alert"></div>
+      <form id="signup-form" class="stack" novalidate>
+        <div class="field">
+          <label for="institutionName">Institution name</label>
+          <input class="input" id="institutionName" name="institutionName" type="text" required maxlength="120">
+          <div class="field-error" id="err-institutionName" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="slug">Institution address</label>
+          <input class="input" id="slug" name="slug" type="text" required autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="30">
+          <div class="field-error" id="err-slug" role="alert"></div>
+        </div>
+        <p class="hint">Staff and students will use /t/your-address/. Lowercase letters, numbers and hyphens, 3-30 characters.</p>
+        <div class="field">
+          <label for="adminName">Administrator name</label>
+          <input class="input" id="adminName" name="adminName" type="text" required autocomplete="name" maxlength="100">
+          <div class="field-error" id="err-adminName" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="adminEmail">Administrator email</label>
+          <input class="input" id="adminEmail" name="adminEmail" type="email" required autocomplete="email" maxlength="254">
+          <div class="field-error" id="err-adminEmail" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="adminPassword">Administrator password</label>
+          <input class="input" id="adminPassword" name="adminPassword" type="password" required autocomplete="new-password" minlength="8" maxlength="72">
+          <div class="field-error" id="err-adminPassword" role="alert"></div>
+        </div>
+        <p class="hint">At least 8 characters, with a letter and a number.</p>
+        <div class="field">
+          <label for="signupKey">Signup key</label>
+          <input class="input" id="signupKey" name="signupKey" type="password" required autocomplete="off" maxlength="200">
+          <div class="field-error" id="err-signupKey" role="alert"></div>
+        </div>
+        <button class="btn btn--block" id="submit" type="submit">Create institution</button>
+      </form>
+      <p class="muted"><a href="/">Back</a></p>
+    </section>
+  </main>
+  <script type="module" src="/js/signup.js"></script>
+</body>
+</html>

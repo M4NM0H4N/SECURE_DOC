@@ -6,7 +6,7 @@ Students request official institutional documents. A Clerk reviews the request, 
 
 | | |
 |---|---|
-| **Status** | All six phases built; 238 automated tests pass. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
+| **Status** | MVP (tag `mvp-v1.0`) plus SaaS phases S0-S1 on the `saas` branch; 274 automated tests pass. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
 | **Stack** | HTML/CSS/JavaScript, Node.js, Express, MongoDB (Mongoose), JWT in an HttpOnly cookie, bcryptjs, express-validator, Helmet, express-rate-limit, Multer, Jest, Supertest, Jenkins |
 | **Roles** | Student, Clerk, HOD, Admin |
 
@@ -42,22 +42,22 @@ Requires Node.js 20+, npm and Docker.
 
 ```bash
 docker compose up -d          # MongoDB single-node replica set, published on 127.0.0.1 only
-cp .env.example .env          # then edit: JWT_SECRET, INITIAL_ADMIN_*, (DEMO_PASSWORD)
+cp .env.example .env          # then edit: JWT_SECRET, SIGNUP_KEY, (DEMO_PASSWORD)
 npm install
 docker exec sdw-mongo mongosh --eval "rs.initiate({_id:'rs0',members:[{_id:0,host:'localhost:27017'}]})"   # first run only
-npm run seed                  # creates the first Admin from .env (one time)
-npm start                     # http://localhost:3000
+npm start                     # http://localhost:3000  -> open /signup.html to create an institution
 ```
 
 Generate a secret: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
-After seeding, remove `INITIAL_ADMIN_PASSWORD` from `.env`. Staff accounts are created from the Admin page.
+Each institution is created at `/signup.html` (needs `SIGNUP_KEY`) and is then served at `/t/<address>/`; its Admin creates staff from the Admin page. See [docs/TENANCY.md](docs/TENANCY.md). Existing single-tenant data: `npm run migrate:tenants`.
 
 ### Scripts
 
 | Command | What it does |
 |---|---|
 | `npm start` / `npm run dev` | Run the server / run with auto-restart |
-| `npm run seed` | One-time Admin creation from environment variables |
+| `npm run seed:superadmin` | One-time platform owner (SUPER_ADMIN) from environment variables |
+| `npm run migrate:tenants` | Move single-tenant MVP data into an institution (dry run unless `-- --apply`) |
 | `npm run seed:demo` / `seed:demo:clean` | Create / remove demo accounts and requests in every status (needs `DEMO_PASSWORD`, refuses in production) |
 | `npm test` | Full test suite (needs the MongoDB container) |
 | `npm run test:unit` | Pure-logic tests only |
@@ -75,7 +75,7 @@ See [.env.example](.env.example). Required: `JWT_SECRET` (32+ characters), `MONG
 ```
 client/      static frontend (HTML, CSS tokens/components, ES modules), served by Express
 server/      routes -> controllers -> services -> models, middleware, validators, tests
-scripts/     seedAdmin.js, seedDemo.js, verifyBuild.js
+scripts/     seedSuperAdmin.js, migrateToTenants.js, seedDemo.js, verifyBuild.js, checkAtlas.js
 docs/        SRS, API, UML, testing, transactions, CI, demo guide, limitations, screenshots
 Jenkinsfile  CI pipeline            docker-compose*.yml  MongoDB for dev and CI
 ```
@@ -83,7 +83,7 @@ Jenkinsfile  CI pipeline            docker-compose*.yml  MongoDB for dev and CI
 ## Security highlights
 
 - All authorisation is on the server: role checks plus ownership (Student) and department (Clerk, HOD) scope; out-of-scope resources return 404.
-- Public registration can only create Students; staff come from the Admin or the seed script.
+- Public registration can only create Students; staff come from the Admin of their institution.
 - Every status change is one atomic conditional update, so two simultaneous actors cannot both succeed; it commits together with its audit record in a transaction.
 - Uploads: PDF/JPG/PNG only, real signature checked, 5 MB cap, random file names, stored outside the web root, downloads only through an authorised endpoint.
 - HttpOnly SameSite=Strict cookie, CSRF header, Helmet CSP, rate limits, NoSQL operator sanitising, strict validation, no `innerHTML`, deactivation takes effect immediately.
