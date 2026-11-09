@@ -18,6 +18,24 @@ function init() {
   const list = document.getElementById('request-list');
   const state = document.getElementById('list-state');
 
+  // When the institution requires it, an unverified student must confirm their e-mail before requesting.
+  api('/auth/me').then((me) => {
+    if (me.verificationRequired && !me.user.emailVerifiedAt) {
+      const resend = el('button', { class: 'btn btn--ghost btn--sm', type: 'button', text: 'Send me a verification link' });
+      resend.addEventListener('click', async () => {
+        resend.disabled = true;
+        try {
+          await api('/auth/resend-verification', { method: 'POST' });
+          showAlert(alertBox, 'If your address still needs verifying, a new link has been sent.', 'success');
+        } catch (err) {
+          showAlert(alertBox, err.message);
+          resend.disabled = false;
+        }
+      });
+      form.before(el('div', { class: 'alert alert--warning' }, el('p', { text: 'Please verify your e-mail address before submitting a request. Check your inbox for the link.' }), resend));
+    }
+  }).catch(() => {});
+
   type.append(el('option', { value: '', text: 'Select a document' }));
   api('/meta/options')
     .then(({ documentTypes }) => {

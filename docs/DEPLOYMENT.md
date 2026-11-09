@@ -42,11 +42,15 @@ Render injects `PORT` (10000 by default). The app listens on it and binds `0.0.0
 |---|---|---|
 | `NODE_ENV` | yes | `production` |
 | `MONGODB_URI` | yes | your Atlas connection string (`mongodb+srv://...`, no spaces, password %-encoded) |
+| `PUBLIC_URL` | yes | the https origin of the service (for example `https://docflow.onrender.com`). The app refuses to start without it: it is the base of every invitation and reset link |
+| `MFA_ENCRYPTION_KEY` | optional | 32+ characters; enables two-step sign-in. Never reuse `JWT_SECRET`. Losing it makes enrolled authenticator secrets unreadable |
 | `JWT_SECRET` | yes | a new production-only secret, at least 32 characters. Generate: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
 | `UPLOAD_DIR` | yes for persistent documents | an absolute path inside the mounted disk, for example `/var/data/uploads` |
 | `PORT` | provided by Render | do not set |
 | `TRUST_PROXY` | optional | defaults to `1` in production, which matches Render's single proxy hop. Whole numbers only. |
 | `JWT_EXPIRES_IN`, `COOKIE_NAME`, `MAX_UPLOAD_MB`, `HOST` | optional | defaults are fine |
+
+New in S3: staff join by invitation (the link is shown once to the Admin), and e-mail is not delivered yet, so for now hand out invitation and reset links yourself. `REQUIRE_EMAIL_VERIFICATION` stays off until mail works. See [ACCOUNTS.md](ACCOUNTS.md).
 
 Do **not** set in production: `MONGODB_URI_TEST`, `MONGODB_ATLAS_URI`, `DEMO_PASSWORD`. Set `SUPER_ADMIN_*` only for the moment you run the seed (section 7), then delete them. Set `SIGNUP_KEY` only while institutions are being created.
 

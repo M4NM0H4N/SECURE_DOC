@@ -18,7 +18,7 @@ npm audit --omit=dev          # production dependency check
 | Check | Result |
 |---|---|
 | Test suites | 10 passed, 0 failed |
-| Tests | **300 passed, 0 failed** in 13 suites (requirement: at least 30). 238 are the MVP tests, adapted (tenant paths, configurable workflow); 62 are new (tenancy 31, migration 5, configurable institution 26) |
+| Tests | **341 passed, 0 failed** in 14 suites (requirement: at least 30). 238 are the MVP tests, adapted (tenant paths, configurable workflow, invitations); 103 are new (tenancy 31, migration 5, configurable institution 26, accounts 40, plus 1 for the retired staff route) |
 | ESLint (`server`, `scripts`) | 0 errors, 0 warnings |
 | `npm audit --omit=dev` | 0 vulnerabilities |
 
@@ -109,6 +109,14 @@ Done in the built-in browser during development, with throwaway demo data that w
 - Mutation check: disabling the department scope in the engine made 3 tests fail (restored).
 - Browser smoke test on a throwaway database: the settings page loaded the default chain, a Principal step was added and saved through the UI (version 2), a request moved through Clerk and HOD by API, and the Principal dashboard showed it with "Complete: Principal sign-off", Reject and Ask for information; completing it from the UI moved the request on. The scratch database was dropped.
 - `npm run test:unit`: 52 passed.
+
+## Account lifecycle and session security (S3, checked 2026-11-10)
+
+- `accounts.test.js` (40): TOTP against the RFC 6238 test vectors and window/replay rules, encryption round trip and tamper detection, configuration guards; invitations (hash-only storage, single use, expiry, revocation, resend, replacement, department rules, rollback on failure, cross-tenant); password change; forgot/reset (identical responses, hash-only, single use, expiry, supersede, deactivated users, rate limit, cross-tenant, admin-issued link); e-mail verification and the gate; lockout (generic responses, unlock, expiry, scattered mistakes, per account and per institution); session revocation (logout replay, other devices, deactivate then reactivate, admin sign-out, stale/missing token version, cross-tenant); MFA (encrypted secret, backup codes hashed, challenge is not a session, replay refused, backup codes single use, wrong codes lock, forged/expired/other-tenant/outdated challenges, disabling, missing key fails closed, cross-tenant).
+- Adaptations of existing tests (none deleted): staff creation now goes through the invite and accept flow (`addStaff` helper), the audit tests assert invitation events and that the invitation token never appears in the audit trail, the "reactivated user is back" test now expects the old session to stay dead, and the production-config tests set `PUBLIC_URL`.
+- Mutation checks: ignoring the token version made 6 tests fail; disabling the lockout check made 3 fail (both restored).
+- Browser smoke test on a throwaway database: invitation link opened (the token was removed from the address bar), the Clerk accepted it and signed in, enabled two-step sign-in on the Account page (secret, ten backup codes), signed out, and signed in again through the password step and the code step. The Admin page showed the invitation as accepted and the new tools (sign out everywhere, reset link). The scratch database was dropped.
+- `npm run test:unit`: 57 passed.
 
 ## Not covered (be honest in the report)
 

@@ -105,8 +105,25 @@ Errors: `400` validation, `409` email already registered, `429`.
 ### POST /api/auth/login
 Body `{ "email", "password" }`. `200` with the user and the auth cookie. Wrong email and wrong password return the same `401` message. `403` if the account is deactivated.
 
+### POST /api/auth/login/mfa
+Second step for accounts with two-step sign-in: `{ challenge, code }`. The login response for such accounts is `{ mfaRequired: true, challenge }` with **no cookie**; the challenge lasts 5 minutes and is not a session. `code` is an authenticator code or a backup code. `401` for anything wrong (and wrong codes count towards the lockout).
+
 ### POST /api/auth/logout
 Clears the cookie. `200`.
+
+### Account lifecycle (S3, details in [ACCOUNTS.md](ACCOUNTS.md))
+
+| Route | Notes |
+|---|---|
+| `POST /auth/change-password` | session; `{ currentPassword, newPassword }`; ends other devices |
+| `POST /auth/forgot-password` | `{ email }`; same response for every address; rate limited |
+| `POST /auth/reset-password` | `{ token, password }`; single use, 1 hour; ends all sessions; `400` for any bad link |
+| `POST /auth/verify-email`, `POST /auth/resend-verification` | `{ token }` / session |
+| `GET /auth/invite?token=` | what the invitation page shows (email, role, department, institution) |
+| `POST /auth/accept-invite` | `{ token, name, password }`; creates the account; `201` |
+| `POST /auth/mfa/setup`, `/enable`, `/disable` | session; staff only; `503` if the server has no MFA key; enable returns ten backup codes once |
+
+Login, `/auth/me`: failures that look the same on purpose (wrong password, unknown account, locked account) all return `401 Invalid email or password`. `/auth/me` also returns `mfaAvailable` and `verificationRequired`.
 
 ### GET /api/auth/me
 `200` `{ "data": { "user": { ... } } }`.
@@ -180,7 +197,19 @@ Returns the file as an attachment (`Content-Disposition: attachment`, `X-Content
 ### GET /api/admin/users
 Query: `role`, `page`, `limit` (max 100). `200` `{ items, total, page, limit }`.
 
-### POST /api/admin/users
+### Invitations and account tools (Admin, S3)
+
+| Route | Notes |
+|---|---|
+| `GET /admin/invites` | status `PENDING`, `ACCEPTED`, `REVOKED`, `EXPIRED`; never any token |
+| `POST /admin/invites` | `{ email, role: CLERK\|HOD\|PRINCIPAL, department?, name? }`; `201 { invite, link }`, the link shown **once**; `409` if the address already has an account |
+| `POST /admin/invites/:id/resend` | new link, old one dies |
+| `DELETE /admin/invites/:id` | revoke |
+| `POST /admin/users/:id/unlock`, `/sign-out`, `/verify-email`, `/reset-link` | unlock, end all sessions, mark verified, issue a one-time reset link (returned once) |
+
+`POST /admin/users` (create a staff account with a password chosen by the Admin) **no longer exists** (`404`).
+
+### POST /api/admin/users (removed)
 Body: `name`, `email`, `password`, `role` (`CLERK` or `HOD` only), `department`. `201` with the user. `ADMIN` and `STUDENT` cannot be created here.
 
 ### PATCH /api/admin/users/:id

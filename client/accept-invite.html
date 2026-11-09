@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>Accept invitation | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main" class="center-screen">
+    <section class="card card--auth stack">
+      <div><span class="brand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" width="40" height="40"><path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg></span></div>
+      <div>
+        <h1>Accept your invitation</h1>
+        <p class="muted" id="lead">Checking your invitation...</p>
+      </div>
+      <div id="form-alert" class="hidden" role="alert"></div>
+      <form id="invite-form" class="stack hidden" novalidate>
+        <p id="invite-summary" class="hint"></p>
+        <div class="field">
+          <label for="name">Your full name</label>
+          <input class="input" id="name" name="name" type="text" required autocomplete="name" maxlength="100">
+          <div class="field-error" id="err-name" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="password">Choose a password</label>
+          <input class="input" id="password" name="password" type="password" required autocomplete="new-password" minlength="8" maxlength="72">
+          <div class="field-error" id="err-password" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="confirm">Repeat the password</label>
+          <input class="input" id="confirm" name="confirm" type="password" required autocomplete="new-password" maxlength="72">
+          <div class="field-error" id="err-confirm" role="alert"></div>
+        </div>
+        <p class="hint">At least 8 characters, with a letter and a number. Nobody else will ever know it.</p>
+        <button class="btn btn--block" id="submit" type="submit">Create my account</button>
+      </form>
+      <p class="muted"><a href="login.html">Already have an account? Sign in</a></p>
+    </section>
+  </main>
+  <script type="module" src="/js/accept-invite.js"></script>
+</body>
+</html>

@@ -53,13 +53,13 @@ describe('transaction mode (replica set)', () => {
     expect(await Request.countDocuments()).toBe(0);
   });
 
-  test('ROLLBACK: audit failure while creating staff creates no user', async () => {
+  test('ROLLBACK: audit failure while creating an invitation leaves no invitation', async () => {
     const admin = await createUser({ role: 'ADMIN' });
     const agent = await loginAgent(app, admin);
     jest.spyOn(auditService, 'record').mockRejectedValueOnce(new Error('simulated audit failure'));
-    const res = await agent.post('/api/admin/users').set(CSRF).send({ name: 'Ghost Clerk', email: 'ghost@example.com', password: 'Passw0rdG1', role: 'CLERK', department: 'CSE' });
+    const res = await agent.post('/api/admin/invites').set(CSRF).send({ name: 'Ghost Clerk', email: 'ghost@example.com', role: 'CLERK', department: 'CSE' });
     expect(res.status).toBe(500);
-    expect(await User.countDocuments({ email: 'ghost@example.com' })).toBe(0);
+    expect(await require('../models/Invite').countDocuments({ email: 'ghost@example.com' })).toBe(0);
   });
 
   test('ROLLBACK: audit failure while deactivating a user keeps the user active', async () => {

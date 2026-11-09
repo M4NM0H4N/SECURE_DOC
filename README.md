@@ -6,7 +6,7 @@ Students request official institutional documents. A Clerk reviews the request, 
 
 | | |
 |---|---|
-| **Status** | MVP (tag `mvp-v1.0`) plus SaaS phases S0-S2 on the `saas` branch; 300 automated tests pass. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
+| **Status** | MVP (tag `mvp-v1.0`) plus SaaS phases S0-S3 on the `saas` branch; 341 automated tests pass. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
 | **Stack** | HTML/CSS/JavaScript, Node.js, Express, MongoDB (Mongoose), JWT in an HttpOnly cookie, bcryptjs, express-validator, Helmet, express-rate-limit, Multer, Jest, Supertest, Jenkins |
 | **Roles** | Student, Clerk, HOD, Admin |
 
@@ -49,7 +49,7 @@ npm start                     # http://localhost:3000  -> open /signup.html to c
 ```
 
 Generate a secret: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
-Each institution is created at `/signup.html` (needs `SIGNUP_KEY`) and is then served at `/t/<address>/`; its Admin creates staff from the Admin page. See [docs/TENANCY.md](docs/TENANCY.md) and, for departments, document types and the approval chain, [docs/WORKFLOW.md](docs/WORKFLOW.md). Existing single-tenant data: `npm run migrate:tenants`.
+Each institution is created at `/signup.html` (needs `SIGNUP_KEY`) and is then served at `/t/<address>/`; its Admin invites staff from the Admin page (they choose their own passwords; see [docs/ACCOUNTS.md](docs/ACCOUNTS.md)). See [docs/TENANCY.md](docs/TENANCY.md) and, for departments, document types and the approval chain, [docs/WORKFLOW.md](docs/WORKFLOW.md). Existing single-tenant data: `npm run migrate:tenants`.
 
 ### Scripts
 
@@ -83,7 +83,7 @@ Jenkinsfile  CI pipeline            docker-compose*.yml  MongoDB for dev and CI
 ## Security highlights
 
 - All authorisation is on the server: role checks plus ownership (Student) and department (Clerk, HOD) scope; out-of-scope resources return 404.
-- Public registration can only create Students; staff come from the Admin of their institution.
+- Public registration can only create Students; staff join by invitation from the Admin of their institution; passwords are never chosen by anyone else.
 - Every status change is one atomic conditional update, so two simultaneous actors cannot both succeed; it commits together with its audit record in a transaction.
 - Uploads: PDF/JPG/PNG only, real signature checked, 5 MB cap, random file names, stored outside the web root, downloads only through an authorised endpoint.
 - HttpOnly SameSite=Strict cookie, CSRF header, Helmet CSP, rate limits, NoSQL operator sanitising, strict validation, no `innerHTML`, deactivation takes effect immediately.

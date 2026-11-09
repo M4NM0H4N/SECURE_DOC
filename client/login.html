@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
   <title>Sign in | DocFlow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -35,6 +36,15 @@
         </div>
         <button class="btn btn--block" id="submit" type="submit">Sign in</button>
       </form>
+      <form id="mfa-form" class="stack hidden" novalidate>
+        <div class="field">
+          <label for="code">Authentication code</label>
+          <input class="input" id="code" name="code" type="text" inputmode="numeric" required autocomplete="one-time-code" maxlength="11">
+          <div class="hint">Enter the 6-digit code from your authenticator app, or one of your backup codes.</div>
+        </div>
+        <button class="btn btn--block" id="mfa-submit" type="submit">Verify</button>
+      </form>
+      <p class="muted"><a href="forgot-password.html">Forgot your password?</a></p>
       <p class="muted">New student? <a href="register.html">Create an account</a></p>
     </section>
   </main>

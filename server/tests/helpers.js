@@ -113,7 +113,7 @@ async function loginAgent(app, user, password = 'Passw0rdTest', slug) {
 }
 
 function forgeToken(userId, opts = {}) {
-  return jwt.sign({ sub: String(userId), tid: String(opts.tenantId || defaultTenant._id) }, opts.secret || process.env.JWT_SECRET, {
+  return jwt.sign({ sub: String(userId), tid: String(opts.tenantId || defaultTenant._id), ver: opts.ver ?? 0 }, opts.secret || process.env.JWT_SECRET, {
     algorithm: 'HS256',
     expiresIn: opts.expiresIn || '2h',
   });
@@ -137,6 +137,16 @@ async function createRequest(student, overrides = {}, tenant) {
     });
   };
   return tenant ? runAsTenant(tenant._id, make) : make();
+}
+
+// Staff are invited, never given a password by an admin. This runs the real flow: the admin
+// creates an invitation, then the invitee accepts it with their own password. Returns the
+// accept response (201 with the user), or the invitation response when it was refused.
+async function addStaff(app, adminAgent, { name, email, password = 'StaffPass123', role, department }, slug = DEFAULT_SLUG) {
+  const inv = await adminAgent.post('/api/admin/invites').set(CSRF).send({ email, role, department, name });
+  if (inv.status !== 201) return inv;
+  const token = new URL(inv.body.data.link).searchParams.get('token');
+  return request(app, slug).post('/api/auth/accept-invite').set(CSRF).send({ token, name, password });
 }
 
 // Tests write '/api/auth/login'; the app now serves '/api/t/<slug>/auth/login'. This wrapper
@@ -163,5 +173,6 @@ const request = (app, slug = DEFAULT_SLUG) => withTenantPath(supertest(app), slu
 request.agent = (app, slug = DEFAULT_SLUG) => withTenantPath(supertest.agent(app), slug);
 
 module.exports = {
+  addStaff,
   getDefaultTenant, makeTenant, DEFAULT_SLUG, runAsTenant, runUnscoped,
   createRequest, startDb, stopDb, clearDb, makeApp, CSRF, createUser, loginAgent, forgeToken, request };

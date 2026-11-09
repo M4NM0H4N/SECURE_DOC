@@ -57,6 +57,7 @@ function renderTopbar(user) {
       el('span', { class: 'badge', text: user.role }),
       user.department ? el('span', { class: 'muted', text: user.department }) : ''
     ),
+    el('a', { class: 'btn btn--ghost btn--sm', href: tpath('/account.html'), text: 'Account' }),
     logout
   );
 

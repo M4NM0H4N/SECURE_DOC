@@ -101,6 +101,11 @@ function createApp({
   tenantApi.post('/requests/:id/document', makeLimiter(uploadRateLimitMax, 'Too many uploads. Please try again later.'));
   tenantApi.use('/auth/login', authLimiter(true));
   tenantApi.use('/auth/register', authLimiter(false));
+  // Token endpoints get the same throttle (tokens are 256-bit, but there is no reason to allow guessing).
+  tenantApi.use(
+    ['/auth/forgot-password', '/auth/reset-password', '/auth/verify-email', '/auth/resend-verification', '/auth/invite', '/auth/accept-invite'],
+    authLimiter(false)
+  );
   tenantApi.use('/auth', authRoutes);
   tenantApi.use('/meta', metaRoutes);
   tenantApi.use('/admin', adminRoutes);

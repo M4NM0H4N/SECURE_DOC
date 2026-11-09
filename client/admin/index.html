@@ -20,11 +20,13 @@
     <div class="req-head"><h1>User management</h1><div class="actions"><a class="btn btn--ghost btn--sm" href="settings.html">Institution settings</a><a class="btn btn--ghost btn--sm" href="audit.html">View audit log</a></div></div>
     <div id="content" class="stack hidden">
       <section class="card stack">
-        <h2>Create staff account</h2>
+        <h2>Invite staff</h2>
+        <p class="muted">Staff choose their own password from a link. The link is shown here once; share it securely until e-mail delivery is added.</p>
         <div id="form-alert" class="hidden" role="alert"></div>
+        <div id="link-box" class="hidden stack"><p class="alert alert--success" id="link-note"></p><div class="field"><label for="link-value">Invitation link (shown only now)</label><input class="input" id="link-value" readonly></div><button class="btn btn--ghost btn--sm" id="link-copy" type="button">Copy link</button></div>
         <form id="staff-form" class="stack" novalidate>
           <div class="form-row form-row--2">
-            <div class="field"><label for="name">Full name</label><input class="input" id="name" name="name" required maxlength="100"></div>
+            <div class="field"><label for="name">Full name (optional)</label><input class="input" id="name" name="name" maxlength="100"></div>
             <div class="field"><label for="email">Email</label><input class="input" id="email" name="email" type="email" required maxlength="254"></div>
           </div>
           <div class="form-row form-row--2">
@@ -32,9 +34,18 @@
               <select class="select" id="role" name="role" required><option value="CLERK">Clerk</option><option value="HOD">HOD</option><option value="PRINCIPAL">Principal</option></select></div>
             <div class="field"><label for="department">Department</label><select class="select" id="department" name="department" required></select></div>
           </div>
-          <div class="field"><label for="password">Initial password</label><input class="input" id="password" name="password" type="password" required minlength="8" maxlength="72" autocomplete="new-password"><div class="hint">Share this securely with the staff member. Password change is not part of this MVP.</div></div>
-          <button class="btn" id="submit" type="submit">Create account</button>
+          <button class="btn" id="submit" type="submit">Create invitation</button>
         </form>
+      </section>
+      <section class="card stack">
+        <h2>Invitations</h2>
+        <div class="table-wrap">
+          <table class="table">
+            <caption class="sr-only">Staff invitations</caption>
+            <thead><tr><th>Email</th><th>Role</th><th>Dept</th><th>Status</th><th>Expires</th><th><span class="sr-only">Actions</span></th></tr></thead>
+            <tbody id="invite-rows"></tbody>
+          </table>
+        </div>
       </section>
       <section class="card stack">
         <h2>All users</h2>

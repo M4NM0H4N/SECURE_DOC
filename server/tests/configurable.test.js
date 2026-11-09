@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 const {
   startDb, stopDb, clearDb, makeApp, CSRF, createUser, createRequest, loginAgent, forgeToken, request,
-  makeTenant, getDefaultTenant, runAsTenant, runUnscoped,
+  makeTenant, getDefaultTenant, runAsTenant, runUnscoped, addStaff,
 } = require('./helpers');
 const config = require('../config/env');
 const Request = require('../models/Request');
@@ -152,7 +152,7 @@ describe('departments', () => {
 
     const reg = await request(app).post('/api/auth/register').set(CSRF).send({ name: 'New Person', email: 'new@example.com', password: 'Passw0rdX1', department: 'ECE' });
     expect(reg.status).toBe(400);
-    const staff = await admin.post('/api/admin/users').set(CSRF).send({ name: 'Eve Clerk', email: 'eve@example.com', password: 'Passw0rdX1', role: 'CLERK', department: 'ECE' });
+    const staff = await admin.post('/api/admin/invites').set(CSRF).send({ name: 'Eve Clerk', email: 'eve@example.com', role: 'CLERK', department: 'ECE' });
     expect(staff.status).toBe(400);
     expect((await admin.patch(`/api/admin/users/${u.student._id}`).set(CSRF).send({ department: 'ECE' })).status).toBe(400);
 
@@ -519,7 +519,7 @@ describe('Principal role and staff accounts', () => {
   test('admin creates a Principal without a department; other staff still need one', async () => {
     const u = await cast();
     const { admin } = await agents(u);
-    const make = (body) => admin.post('/api/admin/users').set(CSRF).send({ name: 'Dr Principal', email: `p${Math.random().toString(36).slice(2, 7)}@example.com`, password: 'Passw0rdX1', ...body });
+    const make = (body) => addStaff(app, admin, { name: 'Dr Principal', email: `p${Math.random().toString(36).slice(2, 7)}@example.com`, ...body });
     const ok1 = await make({ role: 'PRINCIPAL' });
     expect(ok1.status).toBe(201);
     expect(ok1.body.data.user.department).toBeNull();

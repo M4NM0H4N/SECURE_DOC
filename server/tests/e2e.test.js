@@ -3,7 +3,7 @@
 // Automated version of the final demonstration (blueprint section 24),
 // including the security verification step. Uses only the public HTTP API.
 process.env.NODE_ENV = 'test';
-const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, request } = require('./helpers');
+const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, request, addStaff } = require('./helpers');
 
 const PDF = Buffer.from('%PDF-1.4\n1 0 obj\n<<>>\nendobj\n%%EOF\nOfficial Bonafide Certificate\n');
 
@@ -25,12 +25,11 @@ const login = async (email, password) => {
 };
 
 describe('Step 0: setup (seed admin, admin creates staff, students self-register)', () => {
-  test('admin exists (as created by the seed script) and creates Clerk and HODs', async () => {
+  test('admin exists (as created by signup) and invites a Clerk and HODs, who accept', async () => {
     ctx.admin = await createUser({ role: 'ADMIN', email: 'admin@example.com', password: 'AdminPass123' });
     ctx.adminAgent = await login('admin@example.com', 'AdminPass123');
 
-    const mk = (name, email, role, department) =>
-      ctx.adminAgent.post('/api/admin/users').set(CSRF).send({ name, email, password: 'StaffPass123', role, department });
+    const mk = (name, email, role, department) => addStaff(app, ctx.adminAgent, { name, email, role, department });
     expect((await mk('Clerk CSE', 'clerk@example.com', 'CLERK', 'CSE')).status).toBe(201);
     expect((await mk('HOD CSE', 'hod@example.com', 'HOD', 'CSE')).status).toBe(201);
     expect((await mk('HOD ME', 'hod.me@example.com', 'HOD', 'ME')).status).toBe(201);

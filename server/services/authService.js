@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const config = require('../config/env');
 const User = require('../models/User');
 const { ROLES } = require('../config/constants');
+const lockout = require('./lockoutService');
 const AppError = require('../utils/AppError');
 
 const BCRYPT_COST = process.env.NODE_ENV === 'test' ? 4 : 12;
@@ -14,8 +15,10 @@ const DUMMY_HASH = bcrypt.hashSync('dummy-password-for-timing', BCRYPT_COST);
 const hashPassword = (plain) => bcrypt.hash(plain, BCRYPT_COST);
 const verifyPassword = (plain, hash) => bcrypt.compare(plain, hash);
 
-function signToken(userId, tenantId) {
-  return jwt.sign({ sub: String(userId), tid: String(tenantId) }, config.jwtSecret, {
+// `ver` is the user's tokenVersion: bumping it (logout, password change/reset, deactivation,
+// admin sign-out) invalidates every session issued before.
+function signToken(userId, tenantId, ver = 0) {
+  return jwt.sign({ sub: String(userId), tid: String(tenantId), ver }, config.jwtSecret, {
     algorithm: 'HS256',
     expiresIn: config.jwtExpiresIn,
   });
@@ -43,7 +46,12 @@ async function login(email, password) {
   const user = await User.findOne({ email }).select('+passwordHash');
   const hash = user ? user.passwordHash : DUMMY_HASH;
   const valid = await verifyPassword(password, hash);
-  if (!user || !valid) {
+  // Unknown account, locked account and wrong password all look identical to the caller.
+  if (!user || lockout.isLocked(user)) {
+    throw new AppError(401, 'Invalid email or password');
+  }
+  if (!valid) {
+    await lockout.registerFailure(user);
     throw new AppError(401, 'Invalid email or password');
   }
   if (!user.isActive) {

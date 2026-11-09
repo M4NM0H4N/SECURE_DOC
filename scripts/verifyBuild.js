@@ -34,6 +34,12 @@ const required = [
   'client/admin/settings.html',
   'client/principal/index.html',
   'client/js/settings.js',
+  'client/account.html',
+  'client/forgot-password.html',
+  'client/reset-password.html',
+  'client/accept-invite.html',
+  'client/verify-email.html',
+  'server/utils/totp.js',
   '.env.example',
 ];
 

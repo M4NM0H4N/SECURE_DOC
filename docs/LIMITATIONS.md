@@ -30,7 +30,8 @@ An honest list of what the MVP does not do, and what could come next.
 
 - Isolation is enforced in code (resolver, token claim, query plugin) and proved by tests, but it is one shared database: raw driver access and `runUnscoped()` bypass the plugin, so reviewers must check every new use. See [TENANCY.md](TENANCY.md).
 - Institution signup is gated by one owner-issued `SIGNUP_KEY` because e-mail verification does not exist yet (S3/S5). There is no CAPTCHA.
-- Staff passwords are still set by the Admin (S3). Uploaded files are still one local folder with random names, not tenant-prefixed object storage (S4).
+- Account lifecycle (S3): no e-mail is delivered yet (S5), so forgot-password and verification links reach nobody in production; Admin-issued links are the workaround, and the verification gate is off by default. See [ACCOUNTS.md](ACCOUNTS.md) for the rest.
+- Uploaded files are still one local folder with random names, not tenant-prefixed object storage (S4).
 - Workflow (S2): one chain per institution (not per document type or department); fulfilment is always a Clerk of the request's department; a Principal has no document access; resubmission is in place on the same request. A chain with a role that has no active staff is allowed (the screen warns). See [WORKFLOW.md](WORKFLOW.md).
 - Existing MVP sessions end at migration; there is no suspension or billing yet (S6): a `SUSPENDED` institution simply answers 404.
 

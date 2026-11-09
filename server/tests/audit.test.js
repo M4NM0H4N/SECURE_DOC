@@ -1,7 +1,7 @@
 'use strict';
 
 process.env.NODE_ENV = 'test';
-const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, createRequest, loginAgent, request } = require('./helpers');
+const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, createRequest, loginAgent, request, addStaff } = require('./helpers');
 const AuditLog = require('../models/AuditLog');
 const { sanitize, recordSafe } = require('../services/auditService');
 
@@ -84,18 +84,21 @@ describe('user and auth events', () => {
 
     const admin = await createUser({ role: 'ADMIN' });
     const a = await loginAgent(app, admin);
-    const staff = await a.post('/api/admin/users').set(CSRF).send({ name: 'Clerk Z', email: 'z@example.com', password: 'Passw0rdZ1', role: 'CLERK', department: 'ECE' });
+    const staff = await addStaff(app, a, { name: 'Clerk Z', email: 'z@example.com', password: 'Passw0rdZ1', role: 'CLERK', department: 'ECE' });
     await a.patch(`/api/admin/users/${studentId}`).set(CSRF).send({ isActive: false });
     await a.patch(`/api/admin/users/${studentId}`).set(CSRF).send({ isActive: true });
     await a.patch(`/api/admin/users/${studentId}`).set(CSRF).send({ isActive: true }); // no change -> no event
 
     const actions = (await AuditLog.find().lean()).map((l) => l.action);
-    for (const expected of ['USER_REGISTERED', 'USER_LOGIN', 'USER_CREATED_BY_ADMIN', 'USER_DEACTIVATED', 'USER_ACTIVATED']) {
+    for (const expected of ['USER_REGISTERED', 'USER_LOGIN', 'INVITE_CREATED', 'INVITE_ACCEPTED', 'USER_DEACTIVATED', 'USER_ACTIVATED']) {
       expect(actions).toContain(expected);
     }
     expect(actions.filter((x) => x === 'USER_ACTIVATED')).toHaveLength(1);
-    const created = await AuditLog.findOne({ action: 'USER_CREATED_BY_ADMIN' });
-    expect(created.details).toMatchObject({ userId: staff.body.data.user._id, role: 'CLERK', department: 'ECE' });
+    const created = await AuditLog.findOne({ action: 'INVITE_CREATED' });
+    expect(created.details).toMatchObject({ role: 'CLERK', department: 'ECE' });
+    expect(JSON.stringify(created.details)).not.toMatch(/z@example.com/); // no personal data in audit details
+    const accepted = await AuditLog.findOne({ action: 'INVITE_ACCEPTED' });
+    expect(String(accepted.actorId)).toBe(staff.body.data.user._id);
   });
 
   test('SECURITY: no password, hash or token ever appears in the audit trail', async () => {
@@ -103,9 +106,12 @@ describe('user and auth events', () => {
     await request(app).post('/api/auth/login').set(CSRF).send({ email: 's@example.com', password: 'Sup3rSecretPass' });
     const admin = await createUser({ role: 'ADMIN' });
     const a = await loginAgent(app, admin);
-    await a.post('/api/admin/users').set(CSRF).send({ name: 'C', email: 'c@example.com', password: 'AnotherSecret9', role: 'HOD', department: 'CSE' });
+    const inv = await a.post('/api/admin/invites').set(CSRF).send({ name: 'Hod Cee', email: 'c@example.com', role: 'HOD', department: 'CSE' });
+    const inviteToken = new URL(inv.body.data.link).searchParams.get('token');
+    await request(app).post('/api/auth/accept-invite').set(CSRF).send({ token: inviteToken, name: 'Hod Cee', password: 'AnotherSecret9' });
     const dump = JSON.stringify(await AuditLog.find().lean());
     expect(dump).not.toMatch(/Sup3rSecretPass|AnotherSecret9|passwordHash|\$2[aby]\$|sdw_token|eyJ/);
+    expect(dump).not.toContain(inviteToken);
   });
 
   test('failed login is not recorded as a login', async () => {

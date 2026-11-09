@@ -6,6 +6,7 @@ const authenticate = require('../middleware/authenticate');
 const authorize = require('../middleware/authorize');
 const validate = require('../middleware/validate');
 const uploadSingle = require('../middleware/upload');
+const requireVerifiedEmail = require('../middleware/requireVerifiedEmail');
 const { ROLES } = require('../config/constants');
 const { createRequestRules, requestIdRule, listRequestsRules, rejectRules, needsInfoRules, resubmitRules } = require('../validators/requestValidators');
 
@@ -13,7 +14,7 @@ const STAFF = [ROLES.CLERK, ROLES.HOD, ROLES.PRINCIPAL];
 
 router.use(authenticate);
 
-router.post('/', authorize(ROLES.STUDENT), createRequestRules, validate, ctrl.create);
+router.post('/', authorize(ROLES.STUDENT), requireVerifiedEmail, createRequestRules, validate, ctrl.create);
 router.get('/', listRequestsRules, validate, ctrl.list);
 router.get('/:id', requestIdRule, validate, ctrl.getOne);
 

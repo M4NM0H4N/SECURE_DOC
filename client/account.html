@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>My account | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/requests.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header id="topbar"></header>
+  <main id="main" class="container page stack">
+    <div class="req-head">
+      <h1>My account</h1>
+      <a id="back" class="btn btn--ghost btn--sm" href="./">Back</a>
+    </div>
+    <div id="page-alert" class="hidden" role="alert"></div>
+    <div id="content" class="stack hidden">
+      <section class="card stack" aria-labelledby="h-profile">
+        <h2 id="h-profile">Profile</h2>
+        <dl class="meta" id="profile"></dl>
+        <div id="verify-box" class="hidden stack">
+          <p class="alert alert--warning">Your e-mail address is not verified yet.</p>
+          <button class="btn btn--ghost btn--sm" id="resend" type="button">Send a verification link</button>
+        </div>
+      </section>
+
+      <section class="card stack" aria-labelledby="h-password">
+        <h2 id="h-password">Change password</h2>
+        <p class="muted">Changing your password signs you out of every other device.</p>
+        <form id="password-form" class="stack" novalidate>
+        <div class="field">
+          <label for="currentPassword">Current password</label>
+          <input class="input" id="currentPassword" name="currentPassword" type="password" required autocomplete="current-password" maxlength="72">
+          <div class="field-error" id="err-currentPassword" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="newPassword">New password</label>
+          <input class="input" id="newPassword" name="newPassword" type="password" required autocomplete="new-password" minlength="8" maxlength="72">
+          <div class="field-error" id="err-newPassword" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="confirm">Repeat the new password</label>
+          <input class="input" id="confirm" name="confirm" type="password" required autocomplete="new-password" maxlength="72">
+          <div class="field-error" id="err-confirm" role="alert"></div>
+        </div>
+          <button class="btn" type="submit">Change password</button>
+        </form>
+      </section>
+
+      <section class="card stack hidden" id="mfa-section" aria-labelledby="h-mfa">
+        <h2 id="h-mfa">Two-step sign-in (authenticator app)</h2>
+        <p class="muted" id="mfa-state"></p>
+        <div id="mfa-off" class="stack hidden">
+          <button class="btn" id="mfa-start" type="button">Set up an authenticator app</button>
+          <div id="mfa-setup" class="stack hidden">
+            <p>1. In your authenticator app (Google Authenticator, Microsoft Authenticator, Authy...), add an account using this key:</p>
+            <p><code id="mfa-secret"></code></p>
+            <p class="hint">Or open this link on a device with the app: <a id="mfa-link" href="#">add to authenticator</a></p>
+            <form id="mfa-enable-form" class="stack" novalidate>
+        <div class="field">
+          <label for="enable-code">2. Enter the 6-digit code it shows</label>
+          <input class="input" id="enable-code" name="enable-code" type="text" required inputmode="numeric" autocomplete="one-time-code" maxlength="6">
+          <div class="field-error" id="err-enable-code" role="alert"></div>
+        </div>
+              <button class="btn" type="submit">Turn on</button>
+            </form>
+          </div>
+          <div id="mfa-codes" class="stack hidden">
+            <p class="alert alert--warning">Save these backup codes now. Each works once, and they are shown only this time.</p>
+            <pre id="mfa-codes-list"></pre>
+          </div>
+        </div>
+        <form id="mfa-disable-form" class="stack hidden" novalidate>
+        <div class="field">
+          <label for="disable-password">Your password</label>
+          <input class="input" id="disable-password" name="disable-password" type="password" required autocomplete="current-password" maxlength="72">
+          <div class="field-error" id="err-disable-password" role="alert"></div>
+        </div>
+        <div class="field">
+          <label for="disable-code">A current code or a backup code</label>
+          <input class="input" id="disable-code" name="disable-code" type="text" required autocomplete="one-time-code" maxlength="11">
+          <div class="field-error" id="err-disable-code" role="alert"></div>
+        </div>
+          <button class="btn btn--danger" type="submit">Turn off two-step sign-in</button>
+        </form>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="/js/account.js"></script>
+</body>
+</html>

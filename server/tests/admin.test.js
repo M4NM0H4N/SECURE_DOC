@@ -1,7 +1,7 @@
 'use strict';
 
 process.env.NODE_ENV = 'test';
-const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, loginAgent, request } = require('./helpers');
+const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, loginAgent, request, addStaff } = require('./helpers');
 const User = require('../models/User');
 
 let app;
@@ -18,28 +18,28 @@ describe('admin user management', () => {
   test('admin creates CLERK and HOD accounts with departments', async () => {
     const admin = await createUser({ role: 'ADMIN' });
     const agent = await loginAgent(app, admin);
-    const c = await agent.post('/api/admin/users').set(CSRF).send(staff);
+    const c = await addStaff(app, agent, staff);
     expect(c.status).toBe(201);
     expect(c.body.data.user.role).toBe('CLERK');
     expect(c.body.data.user.department).toBe('ECE');
-    const h = await agent.post('/api/admin/users').set(CSRF).send({ ...staff, email: 'hod1@example.com', role: 'HOD' });
+    const h = await addStaff(app, agent, { ...staff, email: 'hod1@example.com', role: 'HOD' });
     expect(h.status).toBe(201);
     expect(JSON.stringify(h.body)).not.toMatch(/passwordHash/);
   });
 
-  test('SECURITY: admin cannot create ADMIN or STUDENT through the staff endpoint', async () => {
+  test('SECURITY: admin cannot invite an ADMIN or a STUDENT', async () => {
     const admin = await createUser({ role: 'ADMIN' });
     const agent = await loginAgent(app, admin);
-    const a = await agent.post('/api/admin/users').set(CSRF).send({ ...staff, role: 'ADMIN' });
-    const s = await agent.post('/api/admin/users').set(CSRF).send({ ...staff, email: 'x@example.com', role: 'STUDENT' });
+    const a = await addStaff(app, agent, { ...staff, role: 'ADMIN' });
+    const s = await addStaff(app, agent, { ...staff, email: 'x@example.com', role: 'STUDENT' });
     expect(a.status).toBe(400);
     expect(s.status).toBe(400);
   });
 
-  test('staff creation requires a valid department', async () => {
+  test('a staff invitation requires a valid department', async () => {
     const admin = await createUser({ role: 'ADMIN' });
     const agent = await loginAgent(app, admin);
-    const res = await agent.post('/api/admin/users').set(CSRF).send({ ...staff, department: undefined });
+    const res = await addStaff(app, agent, { ...staff, department: undefined });
     expect(res.status).toBe(400);
   });
 
@@ -67,7 +67,9 @@ describe('admin user management', () => {
     expect((await studentAgent.get('/api/auth/me')).status).toBe(403);
 
     await adminAgent.patch(`/api/admin/users/${student._id}`).set(CSRF).send({ isActive: true });
-    expect((await studentAgent.get('/api/auth/me')).status).toBe(200);
+    // Reactivation does not resurrect the old session (deactivation revoked it); signing in again works.
+    expect((await studentAgent.get('/api/auth/me')).status).toBe(401);
+    expect((await loginAgent(app, student)).get).toBeDefined();
   });
 
   test('SECURITY: role cannot be changed through PATCH', async () => {
@@ -95,11 +97,18 @@ describe('admin user management', () => {
 });
 
 describe('admin endpoints are RBAC protected', () => {
+  test('direct staff creation with an admin-chosen password no longer exists', async () => {
+    const admin = await createUser({ role: 'ADMIN' });
+    const agent = await loginAgent(app, admin);
+    expect((await agent.post('/api/admin/users').set(CSRF).send(staff)).status).toBe(404);
+  });
+
+
   test.each(['STUDENT', 'CLERK', 'HOD'])('SECURITY: %s gets 403 on admin routes', async (role) => {
     const user = await createUser({ role });
     const agent = await loginAgent(app, user);
     expect((await agent.get('/api/admin/users')).status).toBe(403);
-    expect((await agent.post('/api/admin/users').set(CSRF).send(staff)).status).toBe(403);
+    expect((await agent.post('/api/admin/invites').set(CSRF).send(staff)).status).toBe(403);
     expect((await agent.patch(`/api/admin/users/${user._id}`).set(CSRF).send({ isActive: false })).status).toBe(403);
   });
 

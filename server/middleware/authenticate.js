@@ -27,12 +27,22 @@ const authenticate = asyncHandler(async (req, _res, next) => {
     throw new AppError(401, 'Invalid or expired session');
   }
 
+  // A pending MFA challenge is not a session.
+  if (payload.mfa === true) throw new AppError(401, 'Invalid or expired session');
+
   const user = await User.findById(payload.sub);
   if (!user) {
     throw new AppError(401, 'Invalid or expired session');
   }
+  // Server-side revocation: logout, password change/reset, deactivation and admin sign-out
+  // bump tokenVersion, so every older token stops working immediately. (Checked after the
+  // active flag so a deactivated user still gets the explanatory 403; reactivating them does
+  // not bring their old sessions back, because the version no longer matches.)
   if (!user.isActive) {
     throw new AppError(403, 'Account is deactivated');
+  }
+  if (payload.ver !== user.tokenVersion) {
+    throw new AppError(401, 'Invalid or expired session');
   }
 
   req.user = user;

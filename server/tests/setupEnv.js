@@ -9,3 +9,5 @@ process.env.UPLOAD_DIR = require('path').join(require('os').tmpdir(), 'sdw-test-
 
 // MONGODB_URI_TEST comes from .env (Docker replica set) or the CI environment.
 require('dotenv').config({ quiet: true });
+// S3: a throwaway key so TOTP secrets can be encrypted in tests.
+process.env.MFA_ENCRYPTION_KEY = 'test-mfa-key-test-mfa-key-test-mfa-key-1234';

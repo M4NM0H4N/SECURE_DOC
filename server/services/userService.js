@@ -2,23 +2,9 @@
 
 const User = require('../models/User');
 const { DEPARTMENT_ROLES } = require('../config/constants');
-const { hashPassword } = require('./authService');
 const AppError = require('../utils/AppError');
 const { runInTransaction } = require('../config/transactions');
 const audit = require('./auditService');
-
-async function createStaff(actor, { name, email, password, role, department }) {
-  if (!DEPARTMENT_ROLES.includes(role)) department = null; // Principal: institution-wide
-  const passwordHash = await hashPassword(password);
-  return runInTransaction(async (session) => {
-    const [user] = await User.create([{ name, email, passwordHash, role, department }], session ? { session } : {});
-    await audit.record(
-      { actorId: actor._id, action: 'USER_CREATED_BY_ADMIN', details: { userId: String(user._id), role, department } },
-      { session }
-    );
-    return user;
-  });
-}
 
 async function listUsers({ role, page = 1, limit = 50 }) {
   const filter = {};
@@ -46,6 +32,8 @@ async function updateUser(actor, id, changes) {
     const wasActive = user.isActive;
     if (changes.name !== undefined) user.name = changes.name;
     if (changes.isActive !== undefined) user.isActive = changes.isActive;
+    // Deactivation ends every session right away (a bumped version, not just the per-request check).
+    if (changes.isActive === false && wasActive) user.tokenVersion = (user.tokenVersion || 0) + 1;
     if (changes.department !== undefined) {
       if (!DEPARTMENT_ROLES.includes(user.role)) throw new AppError(400, 'This role has no department');
       user.department = changes.department;
@@ -66,4 +54,4 @@ async function updateUser(actor, id, changes) {
   });
 }
 
-module.exports = { createStaff, listUsers, updateUser };
+module.exports = { listUsers, updateUser };

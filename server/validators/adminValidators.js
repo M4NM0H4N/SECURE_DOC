@@ -1,19 +1,8 @@
 'use strict';
 
 const { body, param, query } = require('express-validator');
-const { STAFF_ROLES, ROLES } = require('../config/constants');
-const { name, email, newPassword, departmentCheck } = require('./authValidators');
-
-const createStaffRules = [
-  name,
-  email,
-  newPassword,
-  body('role')
-    .isString().withMessage('Role must be text').bail()
-    .isIn(STAFF_ROLES).withMessage(`Role must be one of: ${STAFF_ROLES.join(', ')}`),
-  // A Principal is institution-wide and has no department; everyone else needs one.
-  departmentCheck(body('department').if(body('role').not().equals('PRINCIPAL'))),
-];
+const { ROLES } = require('../config/constants');
+const { departmentCheck } = require('./authValidators');
 
 const updateUserRules = [
   param('id').isMongoId().withMessage('Invalid user id'),
@@ -43,4 +32,4 @@ const auditLogRules = [
   query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Invalid limit').toInt(),
 ];
 
-module.exports = { createStaffRules, updateUserRules, listUsersRules, auditLogRules };
+module.exports = { updateUserRules, listUsersRules, auditLogRules };

@@ -23,6 +23,7 @@ HTML/CSS/vanilla JS · Node.js + Express · MongoDB + Mongoose · JWT (HttpOnly 
 
 ## Security requirements (non-negotiable)
 - No hardcoded secrets; `.env` never committed.
+- Passwords are only ever chosen by their owner (invite acceptance, reset, change). Tokens (invite, reset, verification) are random, single use, expiring and stored hashed; links are returned once and never logged or audited. Sessions are revocable on the server (`tokenVersion`).
 - Public registration creates `STUDENT` only; role/department never trusted from client for privilege.
 - Backend enforces RBAC + ownership (Student) + department scope (Clerk, HOD). Out-of-scope → 404.
 - `authenticate` re-loads user and checks `isActive` on every request.

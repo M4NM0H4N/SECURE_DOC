@@ -40,6 +40,15 @@ const config = {
   // Institution self-signup is closed unless the owner sets SIGNUP_KEY (until e-mail
   // verification exists in S3). Never logged, never sent to the client.
   signupKey: process.env.SIGNUP_KEY || '',
+  // Public origin used in links sent to people (invites, password reset, e-mail verification),
+  // for example https://docflow.example.com. Never taken from the request's Host header, which
+  // a visitor could forge to poison a reset link.
+  publicUrl: (process.env.PUBLIC_URL || '').trim().replace(/\/+$/, ''),
+  // Key that encrypts TOTP secrets at rest (32+ characters). MFA is unavailable while unset.
+  mfaKey: process.env.MFA_ENCRYPTION_KEY || '',
+  // Students must verify their e-mail address before submitting requests. Off by default until
+  // e-mail delivery exists (S5); admins can mark a student verified meanwhile.
+  requireEmailVerification: process.env.REQUIRE_EMAIL_VERIFICATION === 'true',
   cookieMaxAgeMs: 2 * 60 * 60 * 1000,
   // Private storage, outside client/ (never served statically).
   uploadDir: path.resolve(__dirname, '..', '..', process.env.UPLOAD_DIR || 'server/uploads'),
@@ -50,6 +59,14 @@ const config = {
 if (config.jwtSecret.length < 32) {
   throw new Error('JWT_SECRET must be at least 32 characters');
 }
+
+if (config.mfaKey && config.mfaKey.length < 32) {
+  throw new Error('MFA_ENCRYPTION_KEY must be at least 32 characters (or leave it unset to disable MFA)');
+}
+if (config.publicUrl && !/^https?:\/\/[^\s/?#]+$/.test(config.publicUrl)) {
+  throw new Error('PUBLIC_URL must be an origin such as https://example.com (no path, query or spaces)');
+}
+if (!config.publicUrl && !isProd) config.publicUrl = `http://localhost:${config.port}`;
 
 if (config.signupKey && config.signupKey.length < 16) {
   throw new Error('SIGNUP_KEY must be at least 16 characters (or leave it unset to close signup)');
@@ -65,6 +82,9 @@ if (/\s/.test(config.mongoUri)) {
 // (The example JWT secret in .env.example is shorter than 32 characters, so the
 // length rule above already refuses to start with it in every environment.)
 if (isProd) {
+  if (!config.publicUrl.startsWith('https://')) {
+    throw new Error('PUBLIC_URL (https://...) is required in production: it is the base of every invite and reset link');
+  }
   if (!config.mongoUri) {
     throw new Error('MONGODB_URI is required in production (use your MongoDB Atlas connection string)');
   }

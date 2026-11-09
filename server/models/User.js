@@ -30,6 +30,17 @@ const userSchema = new mongoose.Schema(
       },
     },
     isActive: { type: Boolean, default: true },
+    // Account security (S3). Sessions carry tokenVersion; bumping it revokes every session.
+    tokenVersion: { type: Number, default: 0 },
+    emailVerifiedAt: { type: Date, default: null },
+    passwordChangedAt: { type: Date, default: null },
+    failedLogins: { type: Number, default: 0 },
+    lockedUntil: { type: Date, default: null },
+    // TOTP multi-factor authentication. The secret is encrypted; backup codes are hashed.
+    mfaEnabled: { type: Boolean, default: false },
+    mfaSecret: { type: String, default: null, select: false },
+    mfaBackupCodes: { type: [{ _id: false, hash: String, usedAt: { type: Date, default: null } }], default: [], select: false },
+    mfaLastStep: { type: Number, default: null, select: false },
   },
   { timestamps: true }
 );
@@ -47,6 +58,13 @@ userSchema.set('toJSON', {
   transform(_doc, ret) {
     delete ret.passwordHash;
     delete ret.__v;
+    delete ret.tokenVersion;
+    delete ret.failedLogins;
+    delete ret.mfaSecret;
+    delete ret.mfaBackupCodes;
+    delete ret.mfaLastStep;
+    ret.locked = Boolean(ret.lockedUntil && new Date(ret.lockedUntil) > new Date());
+    delete ret.lockedUntil;
     return ret;
   },
 });

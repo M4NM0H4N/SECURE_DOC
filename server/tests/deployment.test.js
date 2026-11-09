@@ -20,7 +20,7 @@ const ATLAS_LIKE = 'mongodb+srv://cluster0.example.mongodb.net/prod_db?retryWrit
 // deleted key from the developer's real .env file.
 function loadEnv(overrides) {
   const saved = { ...process.env };
-  Object.assign(process.env, { HOST: '', TRUST_PROXY: '', UPLOAD_DIR: '', ...overrides });
+  Object.assign(process.env, { HOST: '', TRUST_PROXY: '', UPLOAD_DIR: '', PUBLIC_URL: 'https://docflow.example.com', ...overrides });
   try {
     let cfg;
     jest.isolateModules(() => {
