@@ -4,7 +4,9 @@ All agents must read this file, `CLAUDE.md` and `.context.md` before changing an
 Full plan: `docs/FINAL_IMPLEMENTATION_BLUEPRINT.md`. Backlog: `docs/BACKLOG.md`.
 
 ## Objective
-Web app where Students request official documents, Clerks review/fulfil, HODs approve/reject, Admin manages staff and views audit logs. SDG 16. Academic MVP, not a SaaS product.
+Web app where Students request official documents, Clerks review/fulfil, HODs approve/reject, Admin manages staff and views audit logs. SDG 16.
+
+**Branches:** `main` + tag `mvp-v1.0` = the frozen academic MVP submission. `saas` = the multi-institution SaaS upgrade (`docs/SAAS_PLAN.md`, phases S0–S8). Merge to `main` only after a phase gate passes and the owner approves.
 
 ## Stack
 HTML/CSS/vanilla JS · Node.js + Express · MongoDB + Mongoose · JWT (HttpOnly cookie) + bcryptjs · express-validator · Helmet · express-rate-limit · express-mongo-sanitize · Multer (own PDF/JPG/PNG signature check) · Jest + Supertest (tests use the local Docker replica set) · Jenkins · production on Render + MongoDB Atlas (see `docs/DEPLOYMENT.md`).
@@ -37,10 +39,12 @@ HTML/CSS/vanilla JS · Node.js + Express · MongoDB + Mongoose · JWT (HttpOnly 
 Jest + Supertest, ≥ 30 meaningful tests including the 20 security scenarios in the blueprint §19. Never claim tests passed unless actually run; report real counts.
 
 ## Scope restrictions
-No AI approval, QR verify, SMS/email, payments, ERP, analytics, multi-tenant, SLA automation, blockchain. Do not add features outside the blueprint.
+- `main` (MVP): no AI approval, QR verify, SMS/email, payments, ERP, analytics, multi-tenant, SLA automation, blockchain.
+- `saas` branch: the scope is `docs/SAAS_PLAN.md`. Build only the current phase; never add features from a later phase. No blockchain, no AI approval, no ERP.
+- SaaS rules: every query tenant-scoped through the shared layer (from S1); a cross-tenant test for every new route; keep the 238 MVP tests green (adapt, never delete); no secrets in code, logs or audit details.
 
 ## Phase-gate rules
-Work one phase at a time (0–6). Inspect before changing. State planned changes before major work. Implement only the approved phase. Run relevant tests. Report changed files and real results. Update `.context.md` after milestones. **Stop at each gate and wait for approval.**
+Work one phase at a time (MVP phases 0–6, done; SaaS phases S0–S8). Inspect before changing. State planned changes before major work. Implement only the approved phase. Run relevant tests. Report changed files and real results. Update `.context.md` after milestones. **Stop at each gate and wait for approval.**
 
 ## File ownership
 One editor at a time. The implementation owner edits project files. Claude Code is a read-only reviewer unless specific files/folders are handed over in writing by the project owner; during a handover the owner pauses edits to those files, then reviews the diff and runs tests before taking ownership back.

@@ -1,0 +1,55 @@
+# CI for the SaaS upgrade. Same steps as the Jenkinsfile, run on GitHub's servers.
+# Tests use a throwaway loopback MongoDB replica set (docker-compose.ci.yml, RAM-backed).
+# No secrets are needed; never add production credentials to this workflow.
+name: CI
+
+on:
+  push:
+    branches: [main, saas]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      MONGODB_URI_TEST: mongodb://127.0.0.1:27018/secure_doc_workflow_test?replicaSet=rs0&directConnection=true
+      JEST_JUNIT_OUTPUT_DIR: reports
+      JEST_JUNIT_OUTPUT_NAME: junit.xml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - name: Start MongoDB (replica set)
+        run: docker compose -f docker-compose.ci.yml -p sdw-ci up -d --wait
+      - name: Unit tests
+        run: npm run test:unit
+      - name: Full test suite
+        run: npm run test:ci
+      - name: Build verification
+        run: npm run build
+      - name: Production dependency audit
+        run: npm audit --omit=dev
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: junit
+          path: reports/junit.xml
+          if-no-files-found: ignore
+      - name: Stop MongoDB
+        if: always()
+        run: docker compose -f docker-compose.ci.yml -p sdw-ci down

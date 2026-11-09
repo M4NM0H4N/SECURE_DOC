@@ -19,5 +19,6 @@ Each issue: file path, function or area, explanation, risk, suggested fix.
 
 ## Rules
 - Do not claim something works without evidence (run tests or cite code).
-- Do not expand MVP scope or turn this into a commercial SaaS.
+- Scope: on `main` (tag `mvp-v1.0`) the academic MVP is frozen. On the `saas` branch the scope is the SaaS upgrade plan (`docs/SAAS_PLAN.md`), phases S0–S8, one phase at a time. Flag work that belongs to a later phase as scope creep; do not flag work that belongs to the current phase.
+- Tenant isolation is the top review item: every query tenant-scoped through the shared layer, and a cross-tenant test for every new route.
 - Verify, don't rewrite.
