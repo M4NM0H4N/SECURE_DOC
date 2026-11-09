@@ -1,7 +1,7 @@
 'use strict';
 
 const requestService = require('../services/requestService');
-const { transition } = require('../services/transitionService');
+const { transition, advance, resubmit: resubmitRequest } = require('../services/transitionService');
 const { REQUEST_STATUSES } = require('../config/constants');
 const documentService = require('../services/documentService');
 const auditService = require('../services/auditService');
@@ -41,6 +41,22 @@ const reject = asyncHandler(async (req, res) => {
   return ok(res, { request }, 200, "Request rejected");
 });
 
+// Generic step completion (what the UI calls): the target status follows from the step.
+const advanceStep = asyncHandler(async (req, res) => {
+  const request = await advance(req.user, req.params.id);
+  return ok(res, { request }, 200, 'Step completed');
+});
+
+const needsInfo = asyncHandler(async (req, res) => {
+  const request = await transition(req.user, req.params.id, REQUEST_STATUSES.NEEDS_INFO, { reason: req.body.note });
+  return ok(res, { request }, 200, 'More information requested from the student');
+});
+
+const resubmit = asyncHandler(async (req, res) => {
+  const request = await resubmitRequest(req.user, req.params.id, { purpose: req.body.purpose });
+  return ok(res, { request }, 200, 'Request resubmitted');
+});
+
 const uploadDocument = asyncHandler(async (req, res) => {
   const request = await documentService.uploadFulfilment(req.user, req.params.id, req.file);
   return ok(res, { request }, 200, 'Document uploaded and request fulfilled');
@@ -58,4 +74,4 @@ const downloadDocument = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { create, list, getOne, review, approve, reject, uploadDocument, downloadDocument };
+module.exports = { create, list, getOne, review, approve, reject, advanceStep, needsInfo, resubmit, uploadDocument, downloadDocument };

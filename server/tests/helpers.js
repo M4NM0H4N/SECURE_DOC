@@ -9,6 +9,10 @@ const createApp = require('../app');
 const { isLocalMongoUri } = require('../config/mongoUri');
 const User = require('../models/User');
 const Tenant = require('../models/Tenant');
+const Department = require('../models/Department');
+const DocumentType = require('../models/DocumentType');
+const WorkflowDefinition = require('../models/WorkflowDefinition');
+const { seedDefaults } = require('../services/institutionService');
 const { runAsTenant, runUnscoped, setTestFallback } = require('../utils/tenantContext');
 const Request = require('../models/Request');
 const AuditLog = require('../models/AuditLog');
@@ -28,6 +32,9 @@ async function startDb() {
   // metadata and makes the server refuse the connection. Supply it explicitly.
   await mongoose.connect(uri, { runtimeAdapters: { os: require('os') } });
   await Tenant.init();
+  await Department.init();
+  await DocumentType.init();
+  await WorkflowDefinition.init();
   await User.init();
   await Request.init();
   await AuditLog.init();
@@ -46,13 +53,22 @@ async function ensureDefaultTenant() {
     { upsert: true, returnDocument: 'after' }
   ));
   setTestFallback(defaultTenant._id);
+  await resetConfig(defaultTenant);
   return defaultTenant;
+}
+
+// Puts an institution's departments, document types and workflow back to the seeded defaults.
+async function resetConfig(tenant) {
+  for (const M of [Department, DocumentType, WorkflowDefinition]) await M.collection.deleteMany({ tenantId: tenant._id });
+  await runAsTenant(tenant._id, () => seedDefaults());
 }
 
 const getDefaultTenant = () => defaultTenant;
 
 async function makeTenant(slug, name) {
-  return runUnscoped(() => Tenant.create({ slug, name: name || slug + ' institute' }));
+  const tenant = await runUnscoped(() => Tenant.create({ slug, name: name || slug + ' institute' }));
+  await runAsTenant(tenant._id, () => seedDefaults());
+  return tenant;
 }
 
 async function stopDb() {
@@ -66,7 +82,10 @@ async function clearDb() {
   await AuditLog.collection.deleteMany({});
   await Request.collection.deleteMany({});
   await User.collection.deleteMany({});
+  for (const M of [Department, DocumentType, WorkflowDefinition]) await M.collection.deleteMany({ tenantId: { $ne: defaultTenant._id } });
   await Tenant.collection.deleteMany({ slug: { $ne: DEFAULT_SLUG } });
+  // Tests may edit the default institution's configuration; every test starts from the defaults.
+  await resetConfig(defaultTenant);
 }
 
 const makeApp = (opts) => createApp(opts);
@@ -101,14 +120,22 @@ function forgeToken(userId, opts = {}) {
 }
 
 async function createRequest(student, overrides = {}, tenant) {
-  const make = () => Request.create({
+  const make = async () => {
+    const def = await WorkflowDefinition.findOne({}).sort({ version: -1 });
+    const last = def.steps.length - 1;
+    const status = overrides.status || 'PENDING';
+    const stepIndex = { PENDING: 0, NEEDS_INFO: 0, UNDER_REVIEW: 1 }[status] ?? last;
+    return Request.create({
+      workflowDefinitionId: def._id,
+      currentStepIndex: Math.min(stepIndex, last),
     studentId: student._id,
     department: student.department,
     documentType: 'Bonafide Certificate',
     purpose: 'Needed for a scholarship application',
     statusHistory: [{ from: null, to: 'PENDING', by: student._id }],
-    ...overrides,
-  });
+      ...overrides,
+    });
+  };
   return tenant ? runAsTenant(tenant._id, make) : make();
 }
 

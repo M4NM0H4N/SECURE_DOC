@@ -17,7 +17,7 @@ HTML/CSS/vanilla JS · Node.js + Express · MongoDB + Mongoose · JWT (HttpOnly 
 ## Coding conventions
 - CommonJS, async/await, one responsibility per module.
 - Controllers thin; services hold logic; validators in `server/validators/`.
-- Constants (roles, statuses, departments, document types, transitions) only in `server/config/constants.js`.
+- Constants (roles, statuses, default seed lists) only in `server/config/constants.js`. Departments, document types and the approval chain are per-institution data (S2); allowed transitions are derived from the workflow definition by `server/services/workflowEngine.js`, never hard-coded.
 - Response shape: `{ success, data?, message?, errors? }`.
 - Never `innerHTML` with untrusted data in the frontend.
 

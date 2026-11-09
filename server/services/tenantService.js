@@ -10,6 +10,7 @@ const { runInTransaction } = require('../config/transactions');
 const { runAsTenant, runUnscoped } = require('../utils/tenantContext');
 const { hashPassword } = require('./authService');
 const audit = require('./auditService');
+const { seedDefaults } = require('./institutionService');
 
 const digest = (v) => crypto.createHash('sha256').update(String(v)).digest();
 
@@ -29,6 +30,7 @@ async function signup({ institutionName, slug, adminName, adminEmail, adminPassw
     const opt = session ? { session } : {};
     const [tenant] = await runUnscoped(() => Tenant.create([{ name: institutionName, slug }], opt));
     const admin = await runAsTenant(tenant._id, async () => {
+      await seedDefaults({ session });
       const [user] = await User.create(
         [{ name: adminName, email: adminEmail, passwordHash, role: ROLES.ADMIN, department: null }],
         opt

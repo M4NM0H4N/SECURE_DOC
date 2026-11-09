@@ -4,8 +4,12 @@ process.env.NODE_ENV = 'test';
 const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, createRequest, loginAgent } = require('./helpers');
 const Request = require('../models/Request');
 const User = require('../models/User');
-const { findRule } = require('../services/transitionService');
-const { TRANSITIONS } = require('../config/constants');
+const { buildRules, candidates } = require('../services/workflowEngine');
+const { DEFAULT_WORKFLOW_STEPS } = require('../config/constants');
+
+// The MVP's fixed TRANSITIONS table is now derived from the default workflow definition.
+const DEFAULT_RULES = buildRules({ steps: DEFAULT_WORKFLOW_STEPS }).filter((r) => r.kind !== 'needs_info');
+const findRule = (to, role) => candidates(DEFAULT_RULES, to, role)[0] || null;
 
 let app;
 beforeAll(async () => {
@@ -33,7 +37,7 @@ const act = (agent, id, action, body) => agent.patch(`/api/requests/${id}/${acti
 
 describe('transition rules (unit)', () => {
   test('exactly the four permitted transitions exist', () => {
-    expect(TRANSITIONS.map((t) => `${t.from}>${t.to}:${t.role}`).sort()).toEqual([
+    expect(DEFAULT_RULES.map((t) => `${t.from}>${t.to}:${t.role}`).sort()).toEqual([
       'APPROVED>FULFILLED:CLERK',
       'PENDING>UNDER_REVIEW:CLERK',
       'UNDER_REVIEW>APPROVED:HOD',

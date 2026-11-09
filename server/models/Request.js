@@ -1,7 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const { DEPARTMENTS, DOCUMENT_TYPES, REQUEST_STATUSES } = require('../config/constants');
+const { REQUEST_STATUSES } = require('../config/constants');
 const tenantScope = require('./plugins/tenantScope');
 
 const historySchema = new mongoose.Schema(
@@ -9,6 +9,8 @@ const historySchema = new mongoose.Schema(
     from: { type: String, enum: [...Object.values(REQUEST_STATUSES), null], default: null },
     to: { type: String, enum: Object.values(REQUEST_STATUSES), required: true },
     by: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    // Label of the workflow step this change belongs to (for staff-made changes).
+    step: { type: String, maxlength: 60 },
     at: { type: Date, default: Date.now },
     note: { type: String, maxlength: 500 },
   },
@@ -19,8 +21,12 @@ const requestSchema = new mongoose.Schema(
   {
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     // Copied from the student's profile at creation; never taken from input.
-    department: { type: String, enum: DEPARTMENTS, required: true },
-    documentType: { type: String, enum: DOCUMENT_TYPES, required: true },
+    department: { type: String, required: true, uppercase: true, trim: true, maxlength: 10 },
+    documentType: { type: String, required: true, trim: true, maxlength: 80 },
+    // The workflow version this request started with (definitions are immutable) and the
+    // 0-based index of the step it is currently waiting on.
+    workflowDefinitionId: { type: mongoose.Schema.Types.ObjectId, ref: 'WorkflowDefinition', required: true },
+    currentStepIndex: { type: Number, default: 0, min: 0, max: 5 },
     purpose: { type: String, required: true, trim: true, minlength: 10, maxlength: 500 },
     status: {
       type: String,

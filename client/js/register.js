@@ -1,4 +1,4 @@
-import { api, DEPARTMENTS, ROLE_HOME, el } from './api.js';
+import { api, ROLE_HOME, el } from './api.js';
 import { showAlert, hideAlert } from './layout.js';
 
 const form = document.getElementById('register-form');
@@ -7,7 +7,11 @@ const submit = document.getElementById('submit');
 const dept = document.getElementById('department');
 
 dept.append(el('option', { value: '', text: 'Select department' }));
-for (const d of DEPARTMENTS) dept.append(el('option', { value: d, text: d }));
+api('/meta/departments')
+  .then(({ items }) => {
+    for (const d of items) dept.append(el('option', { value: d.code, text: `${d.code} - ${d.name}` }));
+  })
+  .catch(() => showAlert(alertBox, 'Could not load the department list. Please reload the page.'));
 
 function clearFieldErrors() {
   form.querySelectorAll('.field-error').forEach((n) => (n.textContent = ''));

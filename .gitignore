@@ -27,3 +27,4 @@ Thumbs.db
 
 # MongoDB local data
 mongo-data/
+junit.xml

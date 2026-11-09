@@ -2,7 +2,7 @@ import { api, el, ROLE_HOME, apiUrl } from './api.js';
 import { statusBadge, formatDate, STATUS_LABELS } from './format.js';
 import { requireUser } from './layout.js';
 
-const user = await requireUser(['STUDENT', 'CLERK', 'HOD', 'ADMIN']);
+const user = await requireUser(['STUDENT', 'CLERK', 'HOD', 'PRINCIPAL', 'ADMIN']);
 if (user) init();
 
 async function init() {
@@ -24,13 +24,14 @@ async function init() {
         ...row('Purpose', r.purpose),
         ...row('Student', r.studentId ? `${r.studentId.name} (${r.studentId.email})` : '-'),
         ...row('Department', r.department),
+        ...(r.currentStep ? row('Waiting on', r.currentStep) : []),
         ...row('Submitted', formatDate(r.createdAt)),
         ...row('Last updated', formatDate(r.updatedAt))
       ),
       r.status === 'REJECTED' && r.rejectionReason
         ? el('div', { class: 'alert alert--error', text: `Rejection reason: ${r.rejectionReason}` })
         : '',
-      r.status === 'FULFILLED' && user.role !== 'ADMIN'
+      r.status === 'FULFILLED' && user.role !== 'ADMIN' && user.role !== 'PRINCIPAL'
         ? el('div', { class: 'actions' }, el('a', { class: 'btn btn--sm', href: apiUrl(`/requests/${encodeURIComponent(r._id)}/document`), download: '', text: 'Download document' }))
         : '',
       el('h2', { text: 'History' }),
@@ -53,6 +54,7 @@ function timeline(history) {
         'li',
         {},
         el('strong', { text: STATUS_LABELS[h.to] || h.to }),
+        h.step ? el('span', { class: 'muted', text: ` (${h.step})` }) : '',
         el('span', { class: 'muted', text: ` · ${formatDate(h.at)}${h.by ? ` · ${h.by.name}` : ''}` }),
         h.note ? el('div', { class: 'hint', text: h.note }) : ''
       )

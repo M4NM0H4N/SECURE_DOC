@@ -1,7 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const { ROLES, DEPARTMENTS } = require('../config/constants');
+const { ROLES, DEPARTMENT_ROLES } = require('../config/constants');
 const tenantScope = require('./plugins/tenantScope');
 
 const userSchema = new mongoose.Schema(
@@ -16,13 +16,17 @@ const userSchema = new mongoose.Schema(
     },
     passwordHash: { type: String, required: true, select: false },
     role: { type: String, enum: Object.values(ROLES), required: true },
-    // Required for STUDENT, CLERK and HOD (scope enforcement). Admin has none.
+    // Required for STUDENT, CLERK and HOD (scope enforcement). Admin, Principal and the
+    // platform owner have none. The value is a department code from the institution's own
+    // list; the services check it against that list (it is data, not an enum, since S2).
     department: {
       type: String,
-      enum: DEPARTMENTS,
       default: null,
+      trim: true,
+      uppercase: true,
+      maxlength: 10,
       required() {
-        return this.role !== ROLES.ADMIN && this.role !== ROLES.SUPER_ADMIN;
+        return DEPARTMENT_ROLES.includes(this.role);
       },
     },
     isActive: { type: Boolean, default: true },

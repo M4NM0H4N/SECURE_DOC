@@ -7,7 +7,7 @@ Status: implemented on the `saas` branch. Decisions: [ADR 0001](adr/0001-tenancy
 - One shared MongoDB database. `Tenant` = `{ name, slug, status }`. Users, Requests and AuditLog each carry a `tenantId`.
 - Users are unique on `(tenantId, email)`: the same email may exist in two institutions, never twice in one.
 - `SUPER_ADMIN` is the only tenantless role (platform operator). It has its own login, cookie and routes and can list institutions (name, slug, status). It has no route to any tenant's users, requests, documents or audit entries.
-- Departments and document types are still the fixed lists from the MVP. They become per-institution data in S2.
+- Departments, document types and the approval chain are per-institution data (S2, see [WORKFLOW.md](WORKFLOW.md)); each has its own `tenantId` and the same query scoping.
 
 ## Addresses
 
@@ -32,6 +32,7 @@ The old un-prefixed `/api/auth`, `/api/requests` and `/api/admin` paths no longe
 Known limits, stated plainly:
 - Raw driver access (`Model.collection.*`) and `runUnscoped()` bypass the plugin. `runUnscoped` is reserved for platform code (signup, SUPER_ADMIN, migration, scripts) and is easy to grep for. Reviewers should check every new use.
 - `tenantId` is not yet part of stored document file names. File storage is still one local folder with random names; tenant-prefixed keys arrive with the storage interface in S4. Downloads are authorised through a tenant-scoped request lookup, so another tenant cannot reach a file even if it guessed a name.
+- A Principal (S2) is an institution-wide role inside one tenant; it is not a platform role.
 - A SUPER_ADMIN is created only by `npm run seed:superadmin` run by the owner.
 
 ## Institution signup (closed by default)

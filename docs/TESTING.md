@@ -18,7 +18,7 @@ npm audit --omit=dev          # production dependency check
 | Check | Result |
 |---|---|
 | Test suites | 10 passed, 0 failed |
-| Tests | **274 passed, 0 failed** in 12 suites (requirement: at least 30). 238 are the MVP tests, adapted to the tenant paths; 36 are new (tenancy 31, migration 5) |
+| Tests | **300 passed, 0 failed** in 13 suites (requirement: at least 30). 238 are the MVP tests, adapted (tenant paths, configurable workflow); 62 are new (tenancy 31, migration 5, configurable institution 26) |
 | ESLint (`server`, `scripts`) | 0 errors, 0 warnings |
 | `npm audit --omit=dev` | 0 vulnerabilities |
 
@@ -101,6 +101,14 @@ Done in the built-in browser during development, with throwaway demo data that w
 - A browser smoke test on a throwaway database: signup at `/signup.html` redirected to `/t/smoke-college/login.html`, the Admin dashboard loaded under the tenant path with only that tenant's user, relative links resolved inside the tenant, and logout returned to the tenant sign-in. The scratch database was dropped.
 - The bad-slug, suspended and unknown institution responses are identical (404).
 - The test-only default-tenant fallback exists only when `NODE_ENV=test`; the tenancy and migration suites switch it off.
+
+## Configurable institution and workflow (S2, checked 2026-11-09)
+
+- `configurable.test.js` (26): the engine as pure functions (3), departments (4), document types (1), workflow configuration incl. pinned versions and cross-institution isolation (5), a custom Clerk > HOD > Principal chain end to end with audit and history (1) plus rejection, department scope, concurrency, one-step chain and 409/403 semantics (5), NEEDS_INFO and resubmission (4), the Principal role and a cross-tenant Principal test (3). Every new route has a cross-tenant check (A's session at B's address is 401; A's admin, Principal or student against B's ids is 404).
+- Adaptations of existing tests (none deleted): the "exactly four transitions" test now derives them from the default definition; audit assertions use `toMatchObject` because details gained `step` fields; two tests that created requests directly now use the helper that pins a workflow.
+- Mutation check: disabling the department scope in the engine made 3 tests fail (restored).
+- Browser smoke test on a throwaway database: the settings page loaded the default chain, a Principal step was added and saved through the UI (version 2), a request moved through Clerk and HOD by API, and the Principal dashboard showed it with "Complete: Principal sign-off", Reject and Ask for information; completing it from the UI moved the request on. The scratch database was dropped.
+- `npm run test:unit`: 52 passed.
 
 ## Not covered (be honest in the report)
 

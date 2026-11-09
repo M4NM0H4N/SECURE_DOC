@@ -17,7 +17,7 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <header id="topbar"></header>
   <main id="main" class="container page">
-    <div class="req-head"><h1>User management</h1><a class="btn btn--ghost btn--sm" href="audit.html">View audit log</a></div>
+    <div class="req-head"><h1>User management</h1><div class="actions"><a class="btn btn--ghost btn--sm" href="settings.html">Institution settings</a><a class="btn btn--ghost btn--sm" href="audit.html">View audit log</a></div></div>
     <div id="content" class="stack hidden">
       <section class="card stack">
         <h2>Create staff account</h2>
@@ -29,7 +29,7 @@
           </div>
           <div class="form-row form-row--2">
             <div class="field"><label for="role">Role</label>
-              <select class="select" id="role" name="role" required><option value="CLERK">Clerk</option><option value="HOD">HOD</option></select></div>
+              <select class="select" id="role" name="role" required><option value="CLERK">Clerk</option><option value="HOD">HOD</option><option value="PRINCIPAL">Principal</option></select></div>
             <div class="field"><label for="department">Department</label><select class="select" id="department" name="department" required></select></div>
           </div>
           <div class="field"><label for="password">Initial password</label><input class="input" id="password" name="password" type="password" required minlength="8" maxlength="72" autocomplete="new-password"><div class="hint">Share this securely with the staff member. Password change is not part of this MVP.</div></div>

@@ -1,7 +1,7 @@
 'use strict';
 
 const { body } = require('express-validator');
-const { DEPARTMENTS } = require('../config/constants');
+const configService = require('../services/configService');
 
 const name = body('name')
   .isString().withMessage('Name must be text').bail()
@@ -22,9 +22,18 @@ const newPassword = body('password')
   .matches(/[A-Za-z]/).withMessage('Password must contain a letter')
   .matches(/\d/).withMessage('Password must contain a number');
 
-const department = body('department')
-  .isString().withMessage('Department must be text').bail()
-  .isIn(DEPARTMENTS).withMessage(`Department must be one of: ${DEPARTMENTS.join(', ')}`);
+// Checked against the institution's own active departments (runs inside the tenant context).
+const departmentCheck = (chain) =>
+  chain
+    .isString().withMessage('Department must be text').bail()
+    .trim()
+    .toUpperCase()
+    .custom(async (v) => {
+      if (!(await configService.isActiveDepartment(v))) throw new Error('Choose one of this institution\'s departments');
+      return true;
+    });
+
+const department = departmentCheck(body('department'));
 
 const registerRules = [name, email, newPassword, department];
 
@@ -36,4 +45,4 @@ const loginRules = [
     .isLength({ max: 72 }).withMessage('Password is too long'),
 ];
 
-module.exports = { name, email, newPassword, department, registerRules, loginRules };
+module.exports = { name, email, newPassword, department, departmentCheck, registerRules, loginRules };

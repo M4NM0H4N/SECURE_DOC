@@ -1,12 +1,13 @@
 'use strict';
 
 const { body, param, query } = require('express-validator');
-const { DOCUMENT_TYPES, REQUEST_STATUSES } = require('../config/constants');
+const { REQUEST_STATUSES } = require('../config/constants');
 
 const createRequestRules = [
   body('documentType')
     .isString().withMessage('Document type must be text').bail()
-    .isIn(DOCUMENT_TYPES).withMessage(`Document type must be one of: ${DOCUMENT_TYPES.join(', ')}`),
+    .trim()
+    .isLength({ min: 1, max: 80 }).withMessage('Document type is required'),
   body('purpose')
     .isString().withMessage('Purpose must be text').bail()
     .trim()
@@ -35,3 +36,22 @@ const rejectRules = [
 ];
 
 module.exports.rejectRules = rejectRules;
+
+const needsInfoRules = [
+  param('id').isMongoId().withMessage('Invalid request id'),
+  body('note')
+    .isString().withMessage('Tell the student what information is needed').bail()
+    .trim()
+    .isLength({ min: 5, max: 500 }).withMessage('The note must be 5-500 characters'),
+];
+
+const resubmitRules = [
+  param('id').isMongoId().withMessage('Invalid request id'),
+  body('purpose').optional()
+    .isString().withMessage('Purpose must be text').bail()
+    .trim()
+    .isLength({ min: 10, max: 500 }).withMessage('Purpose must be 10-500 characters'),
+];
+
+module.exports.needsInfoRules = needsInfoRules;
+module.exports.resubmitRules = resubmitRules;

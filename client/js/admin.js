@@ -1,4 +1,4 @@
-import { api, el, DEPARTMENTS } from './api.js';
+import { api, el } from './api.js';
 import { requireUser, showAlert, hideAlert } from './layout.js';
 
 const me = await requireUser(['ADMIN']);
@@ -9,7 +9,17 @@ function init() {
 
   const dept = document.getElementById('department');
   dept.append(el('option', { value: '', text: 'Select department' }));
-  for (const d of DEPARTMENTS) dept.append(el('option', { value: d, text: d }));
+  api('/admin/departments')
+    .then(({ items }) => {
+      for (const d of items.filter((x) => x.isActive)) dept.append(el('option', { value: d.code, text: `${d.code} - ${d.name}` }));
+    })
+    .catch((err) => showAlert(document.getElementById('form-alert'), err.message));
+  // A Principal is institution-wide: no department.
+  const roleSel = document.getElementById('role');
+  roleSel.addEventListener('change', () => {
+    dept.disabled = roleSel.value === 'PRINCIPAL';
+    if (dept.disabled) dept.value = '';
+  });
 
   const form = document.getElementById('staff-form');
   const alertBox = document.getElementById('form-alert');

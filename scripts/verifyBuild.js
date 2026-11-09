@@ -31,6 +31,9 @@ const required = [
   'scripts/migrateToTenants.js',
   'client/home.html',
   'client/signup.html',
+  'client/admin/settings.html',
+  'client/principal/index.html',
+  'client/js/settings.js',
   '.env.example',
 ];
 

@@ -1,12 +1,14 @@
 'use strict';
 
 const User = require('../models/User');
+const { DEPARTMENT_ROLES } = require('../config/constants');
 const { hashPassword } = require('./authService');
 const AppError = require('../utils/AppError');
 const { runInTransaction } = require('../config/transactions');
 const audit = require('./auditService');
 
 async function createStaff(actor, { name, email, password, role, department }) {
+  if (!DEPARTMENT_ROLES.includes(role)) department = null; // Principal: institution-wide
   const passwordHash = await hashPassword(password);
   return runInTransaction(async (session) => {
     const [user] = await User.create([{ name, email, passwordHash, role, department }], session ? { session } : {});
@@ -45,7 +47,7 @@ async function updateUser(actor, id, changes) {
     if (changes.name !== undefined) user.name = changes.name;
     if (changes.isActive !== undefined) user.isActive = changes.isActive;
     if (changes.department !== undefined) {
-      if (user.role === 'ADMIN') throw new AppError(400, 'Admin has no department');
+      if (!DEPARTMENT_ROLES.includes(user.role)) throw new AppError(400, 'This role has no department');
       user.department = changes.department;
     }
     await user.save(session ? { session } : {});

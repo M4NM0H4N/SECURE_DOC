@@ -15,6 +15,7 @@ const authRoutes = require('./routes/authRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const platformRoutes = require('./routes/platformRoutes');
+const metaRoutes = require('./routes/metaRoutes');
 const resolveTenant = require('./middleware/resolveTenant');
 const { SLUG_PATTERN } = require('./models/Tenant');
 
@@ -101,6 +102,7 @@ function createApp({
   tenantApi.use('/auth/login', authLimiter(true));
   tenantApi.use('/auth/register', authLimiter(false));
   tenantApi.use('/auth', authRoutes);
+  tenantApi.use('/meta', metaRoutes);
   tenantApi.use('/admin', adminRoutes);
   tenantApi.use('/requests', requestRoutes);
   app.use('/api/t/:slug', tenantApi);

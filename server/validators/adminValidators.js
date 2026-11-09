@@ -2,7 +2,7 @@
 
 const { body, param, query } = require('express-validator');
 const { STAFF_ROLES, ROLES } = require('../config/constants');
-const { name, email, newPassword, department } = require('./authValidators');
+const { name, email, newPassword, departmentCheck } = require('./authValidators');
 
 const createStaffRules = [
   name,
@@ -11,7 +11,8 @@ const createStaffRules = [
   body('role')
     .isString().withMessage('Role must be text').bail()
     .isIn(STAFF_ROLES).withMessage(`Role must be one of: ${STAFF_ROLES.join(', ')}`),
-  department,
+  // A Principal is institution-wide and has no department; everyone else needs one.
+  departmentCheck(body('department').if(body('role').not().equals('PRINCIPAL'))),
 ];
 
 const updateUserRules = [
@@ -24,9 +25,7 @@ const updateUserRules = [
     .trim()
     .isLength({ min: 2, max: 100 }).withMessage('Name must be 2-100 characters'),
   body('isActive').optional().isBoolean({ strict: true }).withMessage('isActive must be true or false'),
-  body('department').optional().custom((v) => typeof v === 'string').withMessage('Department must be text')
-    .bail()
-    .isIn(require('../config/constants').DEPARTMENTS).withMessage('Invalid department'),
+  departmentCheck(body('department').optional()),
 ];
 
 const listUsersRules = [

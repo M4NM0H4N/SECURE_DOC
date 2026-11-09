@@ -90,7 +90,7 @@ If you want a platform owner (SUPER_ADMIN, lists institutions only), run once fr
 npm run seed:superadmin
 ```
 
-Then remove those two variables. If production already holds single-tenant MVP data, run `npm run migrate:tenants` (dry run) and then `-- --apply` once, on a copy first. See [TENANCY.md](TENANCY.md). Never run `npm run seed:demo` in production (it refuses when `NODE_ENV=production`).
+Then remove those two variables. If production already holds single-tenant MVP data, run `npm run migrate:tenants` (dry run) and then `-- --apply` once, on a copy first. The same command also gives every institution its default departments, document types and approval chain and pins existing requests to it (S2, see [WORKFLOW.md](WORKFLOW.md)). Institutions created through signup get these automatically. See [TENANCY.md](TENANCY.md). Never run `npm run seed:demo` in production (it refuses when `NODE_ENV=production`).
 
 ## 8. Deployment checklist
 

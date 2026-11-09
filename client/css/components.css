@@ -124,6 +124,7 @@
   font-size: var(--text-sm);
 }
 .alert--error { color: var(--danger); background: var(--danger-bg); border-color: var(--danger); }
+.alert--warning { color: var(--warn); background: var(--warn-bg); border-color: var(--warn); }
 .alert--success { color: var(--success); background: var(--success-bg); border-color: var(--success); }
 
 /* ---- Badges (request status + roles) ---- */
@@ -140,6 +141,7 @@
 }
 .badge--pending { color: var(--warn); background: var(--warn-bg); }
 .badge--under_review { color: var(--info); background: var(--info-bg); }
+.badge--needs_info { color: var(--warn); background: var(--warn-bg); }
 .badge--approved,
 .badge--fulfilled,
 .badge--active { color: var(--success); background: var(--success-bg); }

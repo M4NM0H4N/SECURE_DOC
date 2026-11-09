@@ -91,10 +91,10 @@ async function uploadFulfilment(actor, requestId, file) {
 
 /**
  * Resolves a download for the current user. Students: own requests only.
- * Clerk/HOD: own department only. Admin: no access to document contents.
+ * Clerk/HOD: own department only. Admin and Principal: no access to document contents.
  */
 async function resolveDownload(user, requestId) {
-  if (user.role === ROLES.ADMIN) throw new AppError(403, 'Access denied');
+  if (user.role === ROLES.ADMIN || user.role === ROLES.PRINCIPAL) throw new AppError(403, 'Access denied');
 
   const request = await Request.findOne({ _id: requestId, ...scopeFilter(user) }).select('+documentPath documentType status');
   if (!request) throw new AppError(404, 'Request not found');

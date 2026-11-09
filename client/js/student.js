@@ -1,5 +1,5 @@
 import { api, el, tpath, apiUrl } from './api.js';
-import { DOCUMENT_TYPES, statusBadge, formatDate } from './format.js';
+import { statusBadge, formatDate } from './format.js';
 import { requireUser, showAlert, hideAlert } from './layout.js';
 
 const user = await requireUser(['STUDENT']);
@@ -19,7 +19,11 @@ function init() {
   const state = document.getElementById('list-state');
 
   type.append(el('option', { value: '', text: 'Select a document' }));
-  for (const t of DOCUMENT_TYPES) type.append(el('option', { value: t, text: t }));
+  api('/meta/options')
+    .then(({ documentTypes }) => {
+      for (const t of documentTypes) type.append(el('option', { value: t, text: t }));
+    })
+    .catch((err) => showAlert(alertBox, err.message));
 
   purpose.addEventListener('input', () => {
     counter.textContent = `${purpose.value.length}/500`;
@@ -75,6 +79,14 @@ function init() {
     if (r.status === 'REJECTED' && r.rejectionReason) {
       node.append(el('p', { class: 'alert alert--error', text: `Reason: ${r.rejectionReason}` }));
     }
+    if (r.currentStep && !['FULFILLED', 'REJECTED'].includes(r.status)) {
+      node.append(el('p', { class: 'hint', text: `Waiting on: ${r.currentStep}` }));
+    }
+    if (r.status === 'NEEDS_INFO') {
+      const ask = [...(r.statusHistory || [])].reverse().find((h) => h.to === 'NEEDS_INFO');
+      node.append(el('p', { class: 'alert alert--warning', text: `The reviewer asks: ${ask && ask.note ? ask.note : 'please update your request.'}` }));
+      node.append(resubmitForm(r));
+    }
     const actions = el(
       'div',
       { class: 'actions' },
@@ -87,6 +99,31 @@ function init() {
     }
     node.append(actions);
     return node;
+  }
+
+  // Answer a request that came back with a question: update the purpose if needed and resubmit.
+  function resubmitForm(r) {
+    const area = el('textarea', { class: 'input', maxlength: '500', 'aria-label': 'Updated purpose' });
+    area.value = r.purpose;
+    const err = el('div', { class: 'field-error', role: 'alert' });
+    const send = el('button', { class: 'btn btn--sm', type: 'submit', text: 'Resubmit' });
+    const f = el('form', { class: 'stack reject-form' }, area, err, send);
+    f.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      if (area.value.trim().length < 10) {
+        err.textContent = 'Purpose must be at least 10 characters.';
+        return;
+      }
+      send.disabled = true;
+      try {
+        await api(`/requests/${r._id}/resubmit`, { method: 'PATCH', body: { purpose: area.value } });
+        showAlert(alertBox, 'Resubmitted. The reviewer will look at it again.', 'success');
+      } catch (e2) {
+        showAlert(alertBox, e2.errors?.map((x) => x.message).join(' ') || e2.message);
+      }
+      await load();
+    });
+    return f;
   }
 
   form.addEventListener('submit', async (e) => {

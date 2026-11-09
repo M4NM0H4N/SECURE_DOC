@@ -1,6 +1,4 @@
 // Thin fetch wrapper. Sends the CSRF header; auth cookie is HttpOnly (not readable here).
-export const DEPARTMENTS = ['CSE', 'ME', 'CIVIL', 'ECE', 'EEE'];
-
 // The institution comes from the page address: /t/<slug>/... Without it there is nothing to
 // talk to, so go to the institution chooser.
 const match = location.pathname.match(/^\/t\/([a-z0-9-]+)(?:\/|$)/);
@@ -13,6 +11,7 @@ export const ROLE_HOME = {
   STUDENT: tpath('/student/'),
   CLERK: tpath('/clerk/'),
   HOD: tpath('/hod/'),
+  PRINCIPAL: tpath('/principal/'),
   ADMIN: tpath('/admin/'),
 };
 

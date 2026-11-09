@@ -33,7 +33,7 @@ Base path: `/api`. JSON in, JSON out (uploads use `multipart/form-data`).
 
 **Rate limits (per IP, 15-minute window).** Login 20 failed attempts (successful logins are not counted), registration 20, uploads 30, whole API 1000.
 
-**Enumerations.** Roles: `STUDENT CLERK HOD ADMIN` (plus the tenantless `SUPER_ADMIN`, platform routes only). Departments: `CSE ME CIVIL ECE EEE`. Statuses: `PENDING UNDER_REVIEW APPROVED REJECTED FULFILLED`. Document types: `Bonafide Certificate`, `Fee Receipt`, `Transcript`, `Transfer Certificate`, `Character Certificate`, `Other`.
+**Enumerations.** Roles: `STUDENT CLERK HOD PRINCIPAL ADMIN` (plus the tenantless `SUPER_ADMIN`, platform routes only). Statuses: `PENDING UNDER_REVIEW NEEDS_INFO APPROVED REJECTED FULFILLED`. Departments and document types are **per institution** (S2): read them from `GET /meta/departments` and `GET /meta/options`. New institutions start with `CSE ME CIVIL ECE EEE` and `Bonafide Certificate`, `Fee Receipt`, `Transcript`, `Transfer Certificate`, `Character Certificate`, `Other`. The approval chain is per institution too; see [WORKFLOW.md](WORKFLOW.md).
 
 ## Access summary
 
@@ -43,12 +43,18 @@ Base path: `/api`. JSON in, JSON out (uploads use `multipart/form-data`).
 | `POST /auth/logout`, `GET /auth/me` | yes | yes | yes | yes |
 | `POST /requests` | yes | - | - | - |
 | `GET /requests`, `GET /requests/:id` | own | own department | own department | all |
-| `PATCH /requests/:id/review` | - | own department | - | - |
-| `PATCH /requests/:id/approve`, `/reject` | - | - | own department | - |
+| `PATCH /requests/:id/advance` (also `/review`, `/approve`) | - | the step's role | the step's role | - |
+| `PATCH /requests/:id/reject`, `/needs-info` | - | the step's role | the step's role | - |
+| `PATCH /requests/:id/resubmit` | own | - | - | - |
+| `GET /meta/departments` | public | public | public | public |
+| `GET /meta/options` | yes | yes | yes | yes |
 | `POST /requests/:id/document` | - | own department | - | - |
 | `GET /requests/:id/document` | own | own department | own department | - (403) |
 | `GET/POST/PATCH /admin/users` | - | - | - | yes |
 | `GET /admin/audit-logs` | - | - | - | yes |
+| `/admin/departments`, `/admin/document-types`, `/admin/workflow` | - | - | - | yes |
+
+Which staff role may act on a request is decided by the request's workflow step, not by the route: a Principal (institution-wide, no department) acts on Principal steps; Clerk and HOD steps are limited to the request's department. Principal columns are omitted above for width: a Principal reads all requests of the institution, acts on its own steps, and has no document access.
 
 ---
 
@@ -133,6 +139,17 @@ A request looks like:
 
 The stored file name (`documentPath`) is never included.
 
+### PATCH /api/requests/:id/advance (staff)
+Completes the approval step the request is waiting on (the generic action). The target status follows from the step: `UNDER_REVIEW`, or `APPROVED` after the last step. `403` if your role cannot complete any step that leads to that status, `404` if the request is outside your institution or (for department-scoped steps) your department, `409` if your role owns such a step but the request is not at it. `/review` and `/approve` below are the same action under their MVP names.
+
+### PATCH /api/requests/:id/needs-info (staff)
+Body `{ "note": "5-500 characters" }`. Asks the student for information; status `NEEDS_INFO`, step unchanged. Only the staff role that owns the current step may do this.
+
+### PATCH /api/requests/:id/resubmit (Student)
+Body `{ "purpose": "optional, 10-500 characters" }`. Only the owning student, only while `NEEDS_INFO`. Returns the request to the step that asked (`PENDING` for step 1, otherwise `UNDER_REVIEW`).
+
+**Request fields added in S2:** `workflowDefinitionId`, `currentStepIndex`, and on every response `currentStep` (label of the step it waits on, or null) and `actions` (what the signed-in user may do now: `advance`, `reject`, `needs_info`, `fulfil`, `resubmit`). `actions` is a UI convenience; the server re-checks every action.
+
 ### PATCH /api/requests/:id/review (Clerk)
 `PENDING` -> `UNDER_REVIEW`. No body.
 
@@ -168,6 +185,22 @@ Body: `name`, `email`, `password`, `role` (`CLERK` or `HOD` only), `department`.
 
 ### PATCH /api/admin/users/:id
 Body may contain `name`, `isActive`, `department`. Including `role`, `email` or `password` returns `400`. An admin cannot deactivate their own account.
+
+### Institution configuration (Admin, S2)
+
+| Route | Purpose |
+|---|---|
+| `GET /api/admin/departments` | all departments (including inactive) |
+| `POST /api/admin/departments` | `{ code, name }`; code 2-10 letters or digits, stored upper case, unique per institution (`409`) |
+| `PATCH /api/admin/departments/:id` | `{ name?, isActive? }`; the code cannot be changed (`400`) |
+| `GET/POST /api/admin/document-types`, `PATCH /api/admin/document-types/:id` | `{ name }` (2-80, unique ignoring case), `{ name?, isActive? }` |
+| `GET /api/admin/workflow` | current version, steps, `rolesWithoutActiveStaff`, `requestsOnOlderVersions` |
+| `PUT /api/admin/workflow` | `{ steps: [{ label, role: CLERK\|HOD\|PRINCIPAL, canReject? }] }`, 1-6 steps, at least one that can reject. Creates the next version; `400` on any invalid chain |
+
+Creating staff: `role` is `CLERK`, `HOD` or `PRINCIPAL`; `department` (an active code of the institution) is required except for `PRINCIPAL`, where it is ignored. Registration and staff creation reject unknown or inactive departments with `400`.
+
+### GET /api/meta/departments, GET /api/meta/options
+`/meta/departments` is public (registration needs it before sign-in): `{ items: [{ _id, code, name }] }`, active only. `/meta/options` needs a session: `{ departments, documentTypes: [name], steps: [{ label, role }] }`.
 
 ### GET /api/admin/audit-logs
 Query: `action` (one of the audit actions), `requestId`, `actorId`, `page`, `limit` (max 100). Newest first. Read-only: there is no create, update or delete route.

@@ -1,9 +1,8 @@
 'use strict';
 
 process.env.NODE_ENV = 'test';
-const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, loginAgent, request } = require('./helpers');
+const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, createRequest, loginAgent, request } = require('./helpers');
 const AuditLog = require('../models/AuditLog');
-const Request = require('../models/Request');
 const { sanitize, recordSafe } = require('../services/auditService');
 
 const PDF = Buffer.from('%PDF-1.4\n%%EOF\n');
@@ -52,25 +51,25 @@ describe('full lifecycle produces an audit trail', () => {
     expect(String(byAction.REQUEST_REVIEWED.actorId._id)).toBe(String(clerk._id));
     expect(String(byAction.REQUEST_APPROVED.actorId._id)).toBe(String(hod._id));
     expect(String(byAction.REQUEST_FULFILLED.actorId._id)).toBe(String(clerk._id));
-    expect(byAction.REQUEST_APPROVED.details).toEqual({ previousStatus: 'UNDER_REVIEW', newStatus: 'APPROVED' });
+    expect(byAction.REQUEST_APPROVED.details).toMatchObject({ previousStatus: 'UNDER_REVIEW', newStatus: 'APPROVED' });
     expect(byAction.DOCUMENT_UPLOADED.details).toMatchObject({ fileType: 'pdf' });
   });
 
   test('rejection is recorded', async () => {
     const student = await createUser({ role: 'STUDENT', department: 'ME' });
     const hod = await createUser({ role: 'HOD', department: 'ME' });
-    const r = await Request.create({ studentId: student._id, department: 'ME', documentType: 'Fee Receipt', purpose: 'Needed for reimbursement', status: 'UNDER_REVIEW' });
+    const r = await createRequest(student, { department: 'ME', documentType: 'Fee Receipt', purpose: 'Needed for reimbursement', status: 'UNDER_REVIEW' });
     const h = await loginAgent(app, hod);
     await h.patch(`/api/requests/${r._id}/reject`).set(CSRF).send({ reason: 'Incomplete information' });
     const log = await AuditLog.findOne({ action: 'REQUEST_REJECTED', requestId: r._id });
     expect(String(log.actorId)).toBe(String(hod._id));
-    expect(log.details).toEqual({ previousStatus: 'UNDER_REVIEW', newStatus: 'REJECTED' });
+    expect(log.details).toMatchObject({ previousStatus: 'UNDER_REVIEW', newStatus: 'REJECTED' });
   });
 
   test('a failed (409) transition writes no audit record', async () => {
     const student = await createUser({ role: 'STUDENT', department: 'CSE' });
     const hod = await createUser({ role: 'HOD', department: 'CSE' });
-    const r = await Request.create({ studentId: student._id, department: 'CSE', documentType: 'Transcript', purpose: 'Needed for visa process', status: 'PENDING' });
+    const r = await createRequest(student, { department: 'CSE', documentType: 'Transcript', purpose: 'Needed for visa process', status: 'PENDING' });
     const h = await loginAgent(app, hod);
     expect((await h.patch(`/api/requests/${r._id}/approve`).set(CSRF)).status).toBe(409);
     expect(await AuditLog.countDocuments({ requestId: r._id })).toBe(0);

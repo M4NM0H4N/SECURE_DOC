@@ -129,6 +129,8 @@ async function seed() {
     // Demo data lives in its own institution, served at /t/demo/.
     let tenant = await runUnscoped(() => Tenant.findOne({ slug: DEMO_SLUG }));
     if (!tenant) tenant = await runUnscoped(() => Tenant.create({ slug: DEMO_SLUG, name: 'Demo Institution' }));
+    // Give the demo institution its default departments, document types and approval chain.
+    await runAsTenant(tenant._id, () => require('../server/services/institutionService').seedDefaults());
     if (process.argv.includes('--clean')) await runAsTenant(tenant._id, () => clean(tenant));
     else await runAsTenant(tenant._id, () => seed());
   } finally {

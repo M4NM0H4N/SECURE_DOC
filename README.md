@@ -6,7 +6,7 @@ Students request official institutional documents. A Clerk reviews the request, 
 
 | | |
 |---|---|
-| **Status** | MVP (tag `mvp-v1.0`) plus SaaS phases S0-S1 on the `saas` branch; 274 automated tests pass. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
+| **Status** | MVP (tag `mvp-v1.0`) plus SaaS phases S0-S2 on the `saas` branch; 300 automated tests pass. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
 | **Stack** | HTML/CSS/JavaScript, Node.js, Express, MongoDB (Mongoose), JWT in an HttpOnly cookie, bcryptjs, express-validator, Helmet, express-rate-limit, Multer, Jest, Supertest, Jenkins |
 | **Roles** | Student, Clerk, HOD, Admin |
 
@@ -49,7 +49,7 @@ npm start                     # http://localhost:3000  -> open /signup.html to c
 ```
 
 Generate a secret: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`.
-Each institution is created at `/signup.html` (needs `SIGNUP_KEY`) and is then served at `/t/<address>/`; its Admin creates staff from the Admin page. See [docs/TENANCY.md](docs/TENANCY.md). Existing single-tenant data: `npm run migrate:tenants`.
+Each institution is created at `/signup.html` (needs `SIGNUP_KEY`) and is then served at `/t/<address>/`; its Admin creates staff from the Admin page. See [docs/TENANCY.md](docs/TENANCY.md) and, for departments, document types and the approval chain, [docs/WORKFLOW.md](docs/WORKFLOW.md). Existing single-tenant data: `npm run migrate:tenants`.
 
 ### Scripts
 
