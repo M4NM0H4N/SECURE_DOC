@@ -30,7 +30,7 @@ Owner's full plan (9 Nov 2026) turns the finished MVP (tag `mvp-v1.0`, 238 tests
 | Frontend | Keep vanilla JS or React | Keep until S7, then decide |
 | File storage | S3 or Cloudflare R2 | R2; adapter keeps it swappable |
 
-See `docs/adr/` for the recorded (proposed) decisions.
+Owner decisions (2026-11-09): path slug first, Mongo outbox, Cloudflare R2, vanilla JS until S7. Recorded as accepted in `docs/adr/`.
 
 ## Acceptance criteria for the SaaS release
 A new institution can sign up, configure departments, document types and approval chain, and invite staff · no endpoint exposes another tenant's data (proved by tests) · documents in private scanned storage, verifiable by QR · every status change e-mails once, with SLA reminders · plan limits and Stripe billing idempotent · audit log searchable, exportable, hash-verified per tenant · staging and production deployed with CI/CD, backups and restore drill · Playwright, security and load results recorded · docs updated.
