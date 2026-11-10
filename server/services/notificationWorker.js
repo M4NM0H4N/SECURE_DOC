@@ -9,6 +9,8 @@ const { runAsTenant, runUnscoped } = require('../utils/tenantContext');
 const mailer = require('./mailer');
 const slaService = require('./slaService');
 const webhookService = require('./webhookService');
+const Heartbeat = require('../models/Heartbeat');
+const { logger } = require('../utils/logger');
 
 const backoff = (attempts) => NOTIFY.BACKOFF_MS[Math.min(attempts, NOTIFY.BACKOFF_MS.length) - 1];
 
@@ -73,6 +75,8 @@ async function runOnce({ now = new Date(), limit = NOTIFY.BATCH } = {}) {
   report.reminders = sla.reminders;
   report.escalations = sla.escalations;
   report.webhooks = await webhookService.deliverDue({ now });
+  // Proof of life for /readyz and the status page. Counts only.
+  await Heartbeat.updateOne({ name: 'worker' }, { $set: { at: new Date(), lastResult: report } }, { upsert: true }).catch(() => {});
   return report;
 }
 
@@ -85,7 +89,7 @@ function start({ intervalMs = NOTIFY.POLL_MS } = {}) {
     try {
       await runOnce();
     } catch (err) {
-      console.error('Notification worker pass failed:', err.message);
+      logger.error('worker pass failed', { error: err.message });
     } finally {
       running = false;
     }

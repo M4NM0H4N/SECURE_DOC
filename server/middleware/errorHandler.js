@@ -1,13 +1,14 @@
 'use strict';
 
 const { fail } = require('../utils/response');
+const { logger } = require('../utils/logger');
 
 function notFound(_req, res) {
   return fail(res, 404, 'Resource not found');
 }
 
 // eslint-disable-next-line no-unused-vars
-function errorHandler(err, _req, res, _next) {
+function errorHandler(err, req, res, _next) {
   if (err.isAppError) {
     return fail(res, err.status, err.message, err.errors);
   }
@@ -24,9 +25,7 @@ function errorHandler(err, _req, res, _next) {
     return fail(res, 400, 'Invalid data');
   }
   // Log server-side only; never leak internals to the client.
-  if (process.env.NODE_ENV !== 'test') {
-    console.error('Unhandled error:', err.message);
-  }
+  logger.error('unhandled error', { requestId: req && req.id, error: err.message, name: err.name });
   return fail(res, 500, 'Internal server error');
 }
 

@@ -91,6 +91,7 @@ router.get('/workflow', cfg.getWorkflow);
 router.put('/workflow', v.workflowRules, validate, cfg.putWorkflow);
 
 // Read-only. There is deliberately no create/update/delete route for audit records.
+router.get('/data-export', ctrl.exportInstitutionData);
 router.get('/audit-logs', auditLogRules, validate, ctrl.listAuditLogs);
 router.get('/audit-logs/export.csv', auditLogRules, validate, ctrl.exportAuditLogs);
 router.get('/audit-logs/verify', ctrl.verifyAuditChain);

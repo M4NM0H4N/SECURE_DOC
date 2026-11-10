@@ -44,9 +44,30 @@ function bell() {
   return link;
 }
 
+// A table wider than its card scrolls sideways. Keyboard users must be able to reach and scroll it,
+// so each wrapper becomes a focusable, named region (axe: scrollable-region-focusable).
+function makeTablesReachable() {
+  for (const wrap of document.querySelectorAll('.table-wrap')) {
+    if (wrap.hasAttribute('tabindex')) continue;
+    const caption = wrap.querySelector('caption');
+    wrap.setAttribute('tabindex', '0');
+    wrap.setAttribute('role', 'region');
+    wrap.setAttribute('aria-label', (caption && caption.textContent.trim()) || 'Table');
+  }
+}
+
+function renderFooter() {
+  if (document.querySelector('.site-footer')) return;
+  const foot = el('footer', { class: 'site-footer', role: 'contentinfo' });
+  for (const [text, page] of [['Terms', 'terms.html'], ['Privacy', 'privacy.html'], ['Support', 'support.html'], ['Status', 'status.html']]) foot.append(el('a', { href: tpath('/' + page), text }), ' ');
+  document.body.append(foot);
+}
+
 function renderTopbar(user) {
   const host = document.getElementById('topbar');
   if (!host) return;
+  renderFooter();
+  makeTablesReachable();
 
   const brand = el('a', { class: 'brand', href: ROLE_HOME[user.role] });
   // Static trusted SVG constant (no user data).

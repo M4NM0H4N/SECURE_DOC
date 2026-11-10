@@ -6,6 +6,7 @@ const AuditChain = require('../models/AuditChain');
 const { currentScope } = require('../utils/tenantContext');
 const { runInTransaction } = require('../config/transactions');
 const { contains, sortSpec, dateRange } = require('../utils/listQuery');
+const { logger } = require('../utils/logger');
 
 const SECRET_KEY = /pass(word)?|token|secret|hash|cookie|authorization/i;
 const GENESIS = 'GENESIS';
@@ -102,7 +103,7 @@ async function recordSafe(event) {
   try {
     return await record(event);
   } catch (err) {
-    if (process.env.NODE_ENV !== 'test') console.error('Audit write failed:', event.action, err.message);
+    logger.error('audit write failed', { action: event.action, error: err.message });
     return null;
   }
 }

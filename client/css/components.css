@@ -126,6 +126,7 @@
 .alert--error { color: var(--danger); background: var(--danger-bg); border-color: var(--danger); }
 .alert--warning { color: var(--warn); background: var(--warn-bg); border-color: var(--warn); }
 .alert--success { color: var(--success); background: var(--success-bg); border-color: var(--success); }
+.alert--info { color: var(--info); background: var(--info-bg); border-color: var(--info); }
 
 /* ---- Badges (request status + roles) ---- */
 .badge {
@@ -177,3 +178,13 @@
 @media (min-width: 768px) {
   .form-row--2 { grid-template-columns: 1fr 1fr; }
 }
+
+/* Footer with the legal links, on every page */
+.site-footer {
+  padding: var(--space-5) var(--space-4);
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+.site-footer a { margin-inline: var(--space-3); display: inline-block; min-height: 24px; }
+.legal { max-width: 760px; }

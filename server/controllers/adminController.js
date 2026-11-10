@@ -47,3 +47,12 @@ const exportAuditLogs = asyncHandler(async (req, res) => {
 });
 
 module.exports = { listUsers, exportUsers, updateUser, listAuditLogs, verifyAuditChain, exportAuditLogs };
+
+// Data portability: everything the institution holds, as one JSON file (no credentials).
+const exportInstitutionData = asyncHandler(async (req, res) => {
+  const bundle = await require('../services/dataLifecycleService').exportInstitution(req.user);
+  res.set('Cache-Control', 'private, no-store');
+  res.set('Content-Disposition', `attachment; filename="institution-export-${new Date().toISOString().slice(0, 10)}.json"`);
+  return res.status(200).json(bundle);
+});
+module.exports.exportInstitutionData = exportInstitutionData;

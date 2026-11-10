@@ -53,3 +53,35 @@ jobs:
       - name: Stop MongoDB
         if: always()
         run: docker compose -f docker-compose.ci.yml -p sdw-ci down
+
+  # Real-browser tests: end-to-end journey, WCAG 2.1 AA scan (light and dark), no sideways scroll on phones.
+  # Uses the same throwaway local MongoDB; the e2e database name is derived from the test one.
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: test
+    env:
+      CI: 'true'
+      MONGODB_URI_TEST: mongodb://127.0.0.1:27018/secure_doc_workflow_test?replicaSet=rs0&directConnection=true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Start MongoDB (replica set)
+        run: docker compose -f docker-compose.ci.yml -p sdw-ci-e2e up -d --wait
+      - name: Browser tests
+        run: npm run test:e2e
+      - name: Upload browser test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report
+          path: reports/e2e-report
+          if-no-files-found: ignore
+      - name: Stop MongoDB
+        if: always()
+        run: docker compose -f docker-compose.ci.yml -p sdw-ci-e2e down

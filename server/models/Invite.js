@@ -23,6 +23,8 @@ const inviteSchema = new mongoose.Schema(
 
 inviteSchema.plugin(tenantScope);
 inviteSchema.index({ tokenHash: 1 }, { unique: true });
+// Retention: an invitation record is removed 90 days after it expired (used or not).
+inviteSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 90 * 24 * 60 * 60 });
 inviteSchema.index({ tenantId: 1, email: 1 });
 
 inviteSchema.set('toJSON', {

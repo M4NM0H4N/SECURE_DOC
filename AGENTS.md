@@ -53,3 +53,10 @@ One editor at a time. The implementation owner edits project files. Claude Code 
 
 ## Skills
 Four skills belong in both `.agent/skills/` and `.claude/skills/`: `context-keeper`, `responsive-mobile-first`, `ui-ux-pro-max`, `security-first` (each a folder with `SKILL.md`). Use the project owner's exact definitions; do not invent placeholders. Status: see `.context.md`.
+
+## S7/S8 conventions
+- Log only through `server/utils/logger.js` (JSON, redacted). No `console.*` in server code, never log bodies, query strings, e-mail addresses, tokens or connection strings.
+- A new tenant route is automatically swept by `server/tests/hardening.test.js` (anonymous, role, cross-institution, CSRF). A deliberately public route must be added to its `PUBLIC` list.
+- A new tenant-scoped model needs the `tenantScope` plugin; export and institution deletion find it automatically (`dataLifecycleService.tenantModels`). Fields holding secrets must be `select: false`.
+- Anything destructive (restore, deletion) refuses unless explicitly confirmed and is tested on a throw-away database only. Never run `docker compose down -v`.
+- Browser tests: `npm run test:e2e` (throw-away local `*e2e*` database). Deployment is the owner's action; do not claim a deployment, Jenkins or GitHub Actions result that has not happened.

@@ -149,3 +149,18 @@ Done in the built-in browser during development, with throwaway demo data that w
 - The Jenkins pipeline has not run on a Jenkins server. Its stages were run by hand against a throwaway CI database (see CI.md): 10 unit tests, 202 total, build check passed.
 - The rejected-request view on the Student dashboard was verified through the API, not visually.
 - HSTS/`Secure` cookies only apply in production mode and were not exercised over HTTPS.
+
+## S8 additions (real, executed counts)
+
+| Check | Result |
+|---|---|
+| `npm test` | **683 passed, 0 failed** in 30 suites. S8 added ops 14, backup 12, lifecycle 17, release 19, hardening 32 |
+| `npm run test:unit` | 124 passed (the `(unit)` tests), 559 skipped by the filter |
+| `npm run test:e2e` (Playwright, installed Chrome, local database) | **84 passed**: journey 11, accessibility 38 (19 pages x light/dark, axe WCAG 2.1 A/AA), responsive 35 (320/375/768 px) |
+| `npm run lint` (server, scripts, e2e) | 0 errors, 0 warnings |
+| `npm run build` | passes (55 files, 8 HTTP checks) |
+| `npm audit --omit=dev` | 0 vulnerabilities |
+| `npm run backup -- --drill` | passed on the local development database |
+| `scripts/loadTest.js` | 863 requests/s, p95 69 ms, 0 errors (local, single process; see LAUNCH.md) |
+
+Browser tests need a Chrome install locally (or `npx playwright install chromium` and `PW_CHANNEL=`), and use a throwaway local database whose name contains `e2e` (derived from `MONGODB_URI_TEST`); they refuse any other database. GitHub Actions and Jenkins have not yet run these.

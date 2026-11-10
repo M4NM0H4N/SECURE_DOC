@@ -7,6 +7,8 @@ const cookieParser = require('cookie-parser');
 const mongoSanitize = require('express-mongo-sanitize');
 const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
+const Heartbeat = require('./models/Heartbeat');
+const requestLog = require('./middleware/requestLog');
 
 const config = require('./config/env');
 const csrf = require('./middleware/csrf');
@@ -27,7 +29,7 @@ const { SLUG_PATTERN } = require('./models/Tenant');
 function createApp({
   authRateLimitMax = 20,
   uploadRateLimitMax = 30,
-  apiRateLimitMax = 1000,
+  apiRateLimitMax = config.generalRateLimitMax,
   trustProxy = config.trustProxy,
   apiKeyRateLimitMax = config.apiRateLimitMax,
 } = {}) {
@@ -40,10 +42,24 @@ function createApp({
 
   // Liveness/readiness probe for the host (Render health check). Public on purpose,
   // exposes no data and is not rate limited, so monitoring never trips a limit.
+  app.use(requestLog);
   app.get('/healthz', (_req, res) => {
     const connected = mongoose.connection.readyState === 1;
     res.set('Cache-Control', 'no-store');
     res.status(connected ? 200 : 503).json({ status: connected ? 'ok' : 'unavailable' });
+  });
+
+  // Readiness: the database answers and, where a separate worker is expected, it has reported recently.
+  // Public, no data: only ok/unavailable and booleans. WORKER_MAX_AGE_SECONDS=0 turns the worker check off.
+  app.get('/readyz', async (_req, res) => {
+    res.set('Cache-Control', 'no-store');
+    const checks = { database: mongoose.connection.readyState === 1 };
+    if (checks.database && config.workerMaxAgeSeconds > 0) {
+      const beat = await Heartbeat.findOne({ name: 'worker' }).lean().catch(() => null);
+      checks.worker = Boolean(beat && Date.now() - new Date(beat.at).getTime() <= config.workerMaxAgeSeconds * 1000);
+    }
+    const ready = Object.values(checks).every(Boolean);
+    res.status(ready ? 200 : 503).json({ status: ready ? 'ok' : 'unavailable', checks });
   });
 
   app.use(
@@ -91,6 +107,12 @@ function createApp({
       message: { success: false, message },
     });
 
+  // API answers are per-person: shared caches and the back button must not keep them. A route that is
+  // genuinely public and cacheable (branding) sets its own header afterwards.
+  app.use('/api', (_req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+  });
   app.use('/api', makeLimiter(apiRateLimitMax, 'Too many requests. Please slow down.'));
   app.use('/api', csrf);
 

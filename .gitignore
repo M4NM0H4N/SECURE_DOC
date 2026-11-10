@@ -28,3 +28,7 @@ Thumbs.db
 # MongoDB local data
 mongo-data/
 junit.xml
+
+# Browser-test output
+test-results/
+playwright-report/

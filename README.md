@@ -6,7 +6,7 @@ Students request official institutional documents. A Clerk reviews the request, 
 
 | | |
 |---|---|
-| **Status** | MVP (tag `mvp-v1.0`) plus SaaS phases S0-S5 on the `saas` branch; 487 automated tests pass. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
+| **Status** | MVP (tag `mvp-v1.0`) plus SaaS phases S0-S5, S7 and S8 on the `saas` branch (S6 billing skipped by the owner); 683 automated tests and 84 browser tests pass locally. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
 | **Stack** | HTML/CSS/JavaScript, Node.js, Express, MongoDB (Mongoose), JWT in an HttpOnly cookie, bcryptjs, express-validator, Helmet, express-rate-limit, Multer, Jest, Supertest, Jenkins |
 | **Roles** | Student, Clerk, HOD, Admin |
 

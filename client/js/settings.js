@@ -1,4 +1,4 @@
-import { api, el } from './api.js';
+import { api, el, apiUrl } from './api.js';
 import { requireUser, showAlert, hideAlert } from './layout.js';
 
 // Admin-only configuration of the institution: approval chain, departments, document types.
@@ -209,6 +209,8 @@ function init() {
       fail(err);
     }
   });
+
+  document.getElementById('data-export').href = apiUrl('/admin/data-export');
 
   // ---- branding
   const colorInput = document.getElementById('brand-color');

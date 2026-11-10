@@ -45,4 +45,10 @@ const logout = (_req, res) => {
 
 const tenants = asyncHandler(async (_req, res) => ok(res, { items: await tenantService.listTenants() }));
 
-module.exports = { signup, login, logout, tenants };
+const lifecycle = require('../services/dataLifecycleService');
+const suspend = asyncHandler(async (req, res) => ok(res, { tenant: tenantView(await lifecycle.suspend(req.params.slug, req.platformUser)) }, 200, 'Institution suspended'));
+const resume = asyncHandler(async (req, res) => ok(res, { tenant: tenantView(await lifecycle.resume(req.params.slug, req.platformUser)) }, 200, 'Institution resumed'));
+const remove = asyncHandler(async (req, res) => ok(res, await lifecycle.deleteInstitution(req.params.slug, req.body.confirm, req.platformUser), 200, 'Institution deleted'));
+const tenantView = (t) => ({ name: t.name, slug: t.slug, status: t.status });
+
+module.exports = { signup, login, logout, tenants, suspend, resume, remove };

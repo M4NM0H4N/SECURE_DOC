@@ -13,14 +13,18 @@
     "migrate:tenants": "node scripts/migrateToTenants.js",
     "storage:cleanup": "node scripts/storageCleanup.js",
     "worker": "node scripts/worker.js",
+    "backup": "node scripts/backup.js",
     "openapi": "node scripts/generateOpenapi.js",
     "seed:demo": "node scripts/seedDemo.js",
     "seed:demo:clean": "node scripts/seedDemo.js --clean",
-    "lint": "eslint server scripts",
+    "lint": "eslint server scripts e2e playwright.config.js",
     "test": "jest --runInBand --forceExit",
     "test:unit": "jest --runInBand --forceExit --testNamePattern=[(]unit[)]",
     "test:ci": "jest --runInBand --forceExit --ci --reporters=default --reporters=jest-junit",
     "build": "node scripts/verifyBuild.js",
+    "test:e2e": "playwright test",
+    "load": "node scripts/loadTest.js",
+    "smoke": "node scripts/smoke.js",
     "check:atlas": "node scripts/checkAtlas.js"
   },
   "keywords": [],
@@ -41,6 +45,8 @@
     "multer": "^2.5.0"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.10.1",
+    "@playwright/test": "^1.49.1",
     "eslint": "^8.57.1",
     "jest": "^30.5.2",
     "jest-junit": "^17.0.0",

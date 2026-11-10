@@ -142,3 +142,16 @@ docker compose up -d     # MongoDB replica set on 127.0.0.1:27017, data in ./mon
 ```
 
 The published port is `127.0.0.1:27017` (CI: `127.0.0.1:27018`). The database has no authentication, so never change this to `27017:27017`. Never run `docker compose down -v` in this project; `./mongo-data` holds your development data.
+
+## 10. S8 launch checklist (owner actions; none done yet)
+
+See [LAUNCH.md](LAUNCH.md) for the full list and [RUNBOOK.md](RUNBOOK.md) for operations.
+
+- [ ] Services created from `render.yaml` (staging, production, production worker); secrets typed into the dashboard; staging and production use different databases, buckets and secrets
+- [ ] Health check path is `/readyz` (database, plus the worker heartbeat when `WORKER_MAX_AGE_SECONDS` is set); `/healthz` remains the simple liveness probe
+- [ ] `WEBHOOK_ENCRYPTION_KEY`, `MFA_ENCRYPTION_KEY`, `VERIFY_SIGNING_KEY` set (32+ characters each; `render.yaml` generates them for staging only)
+- [ ] GitHub: deploy-hook secrets, `STAGING_URL` / `PRODUCTION_URL` variables, `production` environment with a required reviewer
+- [ ] `node scripts/smoke.js https://<host> --tenant <slug> --require-worker` passes after each deploy
+- [ ] Backup schedule set and a restore drill done against staging (`npm run backup -- --drill --allow-remote`)
+- [ ] Bucket versioning on; uptime monitor on `/readyz`
+- [ ] Legal pages filled in and reviewed

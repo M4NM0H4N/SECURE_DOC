@@ -88,6 +88,8 @@ const config = {
   // Also run the notification worker inside the web process (small deployments). Otherwise run
   // "npm run worker" as its own process.
   workerInline: process.env.WORKER_INLINE === 'true',
+  // /readyz reports not-ready when the worker has not reported for this long (0 = do not check).
+  workerMaxAgeSeconds: Number(process.env.WORKER_MAX_AGE_SECONDS || 0),
   // Outgoing webhooks (S7). The signing secrets are encrypted with this key (32+ characters);
   // webhooks are unavailable while it is unset. WEBHOOK_ALLOW_PRIVATE lets them reach http and
   // private addresses: for local development and tests ONLY (refused in production).
@@ -95,6 +97,8 @@ const config = {
   webhookAllowPrivate: process.env.WEBHOOK_ALLOW_PRIVATE === 'true',
   // Requests per key per 15 minutes on the integration API.
   apiRateLimitMax: Number(process.env.API_RATE_LIMIT_MAX) || 300,
+  // Per-IP ceiling for all /api traffic in 15 minutes (the stricter login/upload limits still apply on top).
+  generalRateLimitMax: Number(process.env.RATE_LIMIT_GENERAL_MAX) || 1000,
 };
 
 if (config.jwtSecret.length < 32) {

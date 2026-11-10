@@ -64,3 +64,10 @@ An honest list of what the MVP does not do, and what could come next.
 - API keys are read-only; there is no write API or third-party OAuth.
 - Webhooks and the API are tested against local fakes, not an external consumer.
 - Plans, billing and Stripe (S6) were skipped by the owner: every institution has unlimited use.
+
+## After S8
+- Not deployed. No hosted verification of Atlas, R2, ClamAV, Resend or Render (docs/LAUNCH.md section 3).
+- The restore drill was run locally only. Backups are manual or externally scheduled; this repository does not schedule them.
+- Legal pages are templates. No independent penetration test; the security review is a self-review.
+- No automated alerting; `/readyz` is ready for an external uptime monitor.
+- Per-person erasure is not offered (requests and audit trail must stay consistent); institution-level export and deletion are.

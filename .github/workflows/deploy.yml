@@ -1,0 +1,76 @@
+# Deployment pipeline. It does nothing until the owner creates the Render services and adds the
+# secrets/variables below in GitHub (Settings > Secrets and variables > Actions). No credential is stored here.
+#
+#   Staging:    runs automatically after CI passes on branch `saas` (if RENDER_STAGING_DEPLOY_HOOK is set).
+#   Production: manual only (Run workflow). Use a GitHub "production" environment with required reviewers,
+#               so a second person approves. It deploys whatever Render builds from branch `main`; merge to main only after CI is green.
+#
+# Needed: secrets RENDER_STAGING_DEPLOY_HOOK, RENDER_PRODUCTION_DEPLOY_HOOK; variables STAGING_URL, PRODUCTION_URL, SMOKE_TENANT (optional).
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [saas]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Where to deploy
+        type: choice
+        options: [staging, production]
+        default: staging
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-${{ github.event.inputs.target || 'staging' }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Automatic runs only when CI succeeded; manual runs are always the owner's decision.
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: ${{ github.event.inputs.target == 'production' && 'production' || 'staging' }}
+    env:
+      TARGET: ${{ github.event.inputs.target || 'staging' }}
+      STAGING_HOOK: ${{ secrets.RENDER_STAGING_DEPLOY_HOOK }}
+      PRODUCTION_HOOK: ${{ secrets.RENDER_PRODUCTION_DEPLOY_HOOK }}
+      STAGING_URL: ${{ vars.STAGING_URL }}
+      PRODUCTION_URL: ${{ vars.PRODUCTION_URL }}
+      SMOKE_TENANT: ${{ vars.SMOKE_TENANT }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Trigger the Render deploy
+        id: trigger
+        run: |
+          if [ "$TARGET" = "production" ]; then HOOK="$PRODUCTION_HOOK"; URL="$PRODUCTION_URL"; else HOOK="$STAGING_HOOK"; URL="$STAGING_URL"; fi
+          if [ -z "$HOOK" ] || [ -z "$URL" ]; then
+            echo "::notice::No deploy hook or URL configured for $TARGET; nothing deployed."
+            echo "deployed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "::add-mask::$HOOK"
+          curl --fail --silent --show-error -X POST "$HOOK" > /dev/null
+          echo "deployed=true" >> "$GITHUB_OUTPUT"
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+      - name: Wait for the new version, then smoke test
+        if: steps.trigger.outputs.deployed == 'true'
+        env:
+          URL: ${{ steps.trigger.outputs.url }}
+        run: |
+          # Render takes a while to build and swap; retry the read-only smoke test for up to ~10 minutes.
+          for i in $(seq 1 20); do
+            if node scripts/smoke.js "$URL" ${SMOKE_TENANT:+--tenant "$SMOKE_TENANT"}; then exit 0; fi
+            echo "Not ready yet (attempt $i of 20)"; sleep 30
+          done
+          echo "::error::Smoke test did not pass after deploy. Check Render, then follow docs/RUNBOOK.md (rollback)."
+          exit 1

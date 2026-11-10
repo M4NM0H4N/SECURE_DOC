@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Service status | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main" class="container page stack legal">
+    <h1>Service status</h1>
+    <section class="card stack" aria-live="polite">
+      <p id="status-line" class="state"><span class="spinner"></span> <span>Checking...</span></p>
+      <ul id="status-checks" class="muted"></ul>
+      <p class="muted" id="status-time"></p>
+    </section>
+  </main>
+  <footer class="site-footer" role="contentinfo">
+    <a href="terms.html">Terms</a> <a href="privacy.html">Privacy</a> <a href="support.html">Support</a> <a href="status.html">Status</a>
+  </footer>
+  <script type="module" src="/js/status.js"></script>
+</body>
+</html>

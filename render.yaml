@@ -1,0 +1,97 @@
+# Render Blueprint: staging and production. NOT applied by anything in this repository; the owner
+# creates it from the Render dashboard (New > Blueprint) after reading docs/DEPLOYMENT.md.
+# No secret values live here: every `sync: false` variable is typed into the dashboard by the owner.
+# autoDeploy is off on purpose: GitHub Actions (.github/workflows/deploy.yml) deploys only after CI passes.
+services:
+  # ---- staging: its own database and bucket, never production's ---------------------------------
+  - type: web
+    name: docflow-staging
+    runtime: node
+    plan: starter
+    branch: saas
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /readyz
+    autoDeploy: false
+    envVars:
+      - { key: NODE_ENV, value: production }
+      - { key: NODE_VERSION, value: "22" }
+      - { key: WORKER_INLINE, value: "true" }
+      - { key: LOG_LEVEL, value: info }
+      - { key: MONGODB_URI, sync: false }
+      - { key: JWT_SECRET, generateValue: true }
+      - { key: PUBLIC_URL, sync: false }
+      - { key: SIGNUP_KEY, sync: false }
+      - { key: WEBHOOK_ENCRYPTION_KEY, generateValue: true }
+      - { key: MFA_ENCRYPTION_KEY, generateValue: true }
+      - { key: VERIFY_SIGNING_KEY, generateValue: true }
+      - { key: TRUST_PROXY, value: "1" }
+      - { key: STORAGE_DRIVER, value: s3 }
+      - { key: S3_ENDPOINT, sync: false }
+      - { key: S3_BUCKET, sync: false }
+      - { key: S3_ACCESS_KEY_ID, sync: false }
+      - { key: S3_SECRET_ACCESS_KEY, sync: false }
+      - { key: S3_REGION, value: auto }
+      - { key: CLAMD_HOST, sync: false }
+      - { key: MAIL_PROVIDER, value: resend }
+      - { key: RESEND_API_KEY, sync: false }
+      - { key: MAIL_FROM, sync: false }
+
+  # ---- production: web + a separate worker so a slow e-mail provider never slows requests --------
+  - type: web
+    name: docflow-production
+    runtime: node
+    plan: standard
+    branch: main
+    buildCommand: npm ci --omit=dev
+    startCommand: npm start
+    healthCheckPath: /readyz
+    autoDeploy: false
+    envVars:
+      - { key: NODE_ENV, value: production }
+      - { key: NODE_VERSION, value: "22" }
+      - { key: WORKER_MAX_AGE_SECONDS, value: "120" }
+      - { key: LOG_LEVEL, value: info }
+      - { key: MONGODB_URI, sync: false }
+      - { key: JWT_SECRET, sync: false }
+      - { key: PUBLIC_URL, sync: false }
+      - { key: SIGNUP_KEY, sync: false }
+      - { key: WEBHOOK_ENCRYPTION_KEY, sync: false }
+      - { key: MFA_ENCRYPTION_KEY, sync: false }
+      - { key: VERIFY_SIGNING_KEY, sync: false }
+      - { key: TRUST_PROXY, value: "1" }
+      - { key: STORAGE_DRIVER, value: s3 }
+      - { key: S3_ENDPOINT, sync: false }
+      - { key: S3_BUCKET, sync: false }
+      - { key: S3_ACCESS_KEY_ID, sync: false }
+      - { key: S3_SECRET_ACCESS_KEY, sync: false }
+      - { key: S3_REGION, value: auto }
+      - { key: CLAMD_HOST, sync: false }
+      - { key: MAIL_PROVIDER, value: resend }
+      - { key: RESEND_API_KEY, sync: false }
+      - { key: MAIL_FROM, sync: false }
+
+  - type: worker
+    name: docflow-production-worker
+    runtime: node
+    plan: starter
+    branch: main
+    buildCommand: npm ci --omit=dev
+    startCommand: npm run worker
+    autoDeploy: false
+    envVars:
+      - { key: NODE_ENV, value: production }
+      - { key: NODE_VERSION, value: "22" }
+      - { key: LOG_LEVEL, value: info }
+      - { key: MONGODB_URI, sync: false }
+      - { key: JWT_SECRET, sync: false }
+      - { key: PUBLIC_URL, sync: false }
+      - { key: WEBHOOK_ENCRYPTION_KEY, sync: false }
+      - { key: MFA_ENCRYPTION_KEY, sync: false }
+      - { key: VERIFY_SIGNING_KEY, sync: false }
+      - { key: MAIL_PROVIDER, value: resend }
+      - { key: RESEND_API_KEY, sync: false }
+      - { key: MAIL_FROM, sync: false }
+
+  # Nightly logical backup is run from GitHub Actions or the owner's machine (docs/RUNBOOK.md);
+  # Render cron jobs have no persistent disk to keep the files on.

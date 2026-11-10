@@ -282,3 +282,9 @@ See `docs/INTEGRATIONS.md` for the full description.
 - `GET /analytics/summary` (Admin, Principal).
 - `GET|POST|DELETE /admin/api-keys`; `GET|POST|PATCH|DELETE /admin/webhooks`, `POST /admin/webhooks/:id/test`, `GET /admin/webhooks/:id/deliveries`.
 - Integration API `/api/t/<slug>/v1/*` authenticated by API key; contract in `docs/openapi.json`.
+
+## S8 additions
+- `GET /readyz` (no tenant, public): `{ status, checks: { database, worker? } }`, 200 or 503. `GET /healthz` unchanged.
+- Every response has `X-Request-Id` (a sane incoming value is echoed). All `/api` answers are `Cache-Control: no-store` except public branding.
+- `GET /admin/data-export` (Admin): the institution's data as one JSON download, no credentials; audited as `DATA_EXPORTED` (`kind: institution`).
+- Platform (`SUPER_ADMIN`): `POST /api/platform/tenants/:slug/suspend`, `POST .../resume`, `DELETE /api/platform/tenants/:slug` with body `{ "confirm": "<slug>" }` (only for a suspended institution; irreversible). Audit actions `TENANT_SUSPENDED`, `TENANT_RESUMED`, `TENANT_DELETED`.
