@@ -50,6 +50,10 @@ See [API.md](API.md): `PATCH /requests/:id/advance`, `/needs-info`, `/resubmit`;
 
 `npm run migrate:tenants -- --apply` also seeds the defaults for every institution that has none and pins existing requests (PENDING and NEEDS_INFO to step 1, everything else to the last step of the default chain). A dry run against the local development database reported 1 request to pin and 1 institution to seed (nothing written).
 
+## SLAs (added in S5)
+
+A step can also carry `slaHours` and `escalateTo`; they are part of the immutable version like everything else here. See [NOTIFICATIONS.md](NOTIFICATIONS.md).
+
 ## Deliberately not in S2
 
-Per-document-type chains (`documentTypeId` on a definition), department-specific chains, a configurable fulfilment role, and e-mail notifications (S5). Fulfilment is always done by a Clerk of the request's department.
+Per-document-type chains (`documentTypeId` on a definition), department-specific chains, a configurable fulfilment role, and (until S5) e-mail notifications. Fulfilment is always done by a Clerk of the request's department.

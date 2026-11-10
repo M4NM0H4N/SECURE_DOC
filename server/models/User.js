@@ -30,6 +30,8 @@ const userSchema = new mongoose.Schema(
       },
     },
     isActive: { type: Boolean, default: true },
+    // E-mail for ordinary notifications (security mail such as invites and resets is always sent).
+    notifyEmail: { type: Boolean, default: true },
     // Account security (S3). Sessions carry tokenVersion; bumping it revokes every session.
     tokenVersion: { type: Number, default: 0 },
     emailVerifiedAt: { type: Date, default: null },

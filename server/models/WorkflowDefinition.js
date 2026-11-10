@@ -13,6 +13,9 @@ const stepSchema = new mongoose.Schema(
     // false: institution-wide approver (Principal).
     departmentScoped: { type: Boolean, required: true },
     canReject: { type: Boolean, default: false },
+    // SLA (S5): hours the step may take, and who is told when it is overdue (default: the step's own role).
+    slaHours: { type: Number, default: null, min: 1, max: 720 },
+    escalateTo: { type: String, enum: [...WORKFLOW_STEP_ROLES, null], default: null },
   },
   { _id: false }
 );

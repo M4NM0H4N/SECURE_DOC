@@ -6,7 +6,7 @@ Students request official institutional documents. A Clerk reviews the request, 
 
 | | |
 |---|---|
-| **Status** | MVP (tag `mvp-v1.0`) plus SaaS phases S0-S4 on the `saas` branch; 423 automated tests pass. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
+| **Status** | MVP (tag `mvp-v1.0`) plus SaaS phases S0-S5 on the `saas` branch; 487 automated tests pass. Prepared for MongoDB Atlas + Render ([docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)) but **not deployed**. The Jenkins pipeline is written and its commands pass locally, but it has not run on a Jenkins server yet. |
 | **Stack** | HTML/CSS/JavaScript, Node.js, Express, MongoDB (Mongoose), JWT in an HttpOnly cookie, bcryptjs, express-validator, Helmet, express-rate-limit, Multer, Jest, Supertest, Jenkins |
 | **Roles** | Student, Clerk, HOD, Admin |
 
@@ -64,6 +64,7 @@ Each institution is created at `/signup.html` (needs `SIGNUP_KEY`) and is then s
 | `npm run test:ci` | Full suite with a JUnit report in `reports/` (used by Jenkins) |
 | `npm run lint` | ESLint |
 | `npm run build` | Build verification: files present and a real HTTP server answers correctly |
+| `npm run worker` | The notification worker: delivers queued e-mail and watches SLA timers (`-- --once` for one pass). See [docs/NOTIFICATIONS.md](docs/NOTIFICATIONS.md) |
 | `npm run storage:cleanup` | Report (dry run) or `-- --apply` delete orphaned and expired document files; see [docs/TRUST.md](docs/TRUST.md) |
 | `npm run check:atlas` | Tests your MongoDB Atlas connection (replica set + a read-only transaction) from `MONGODB_ATLAS_URI` in your local `.env`. Never prints the connection string. |
 

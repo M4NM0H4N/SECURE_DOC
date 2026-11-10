@@ -5,7 +5,8 @@ const { REQUEST_STATUSES: S } = require('../config/constants');
 const { runInTransaction } = require('../config/transactions');
 const audit = require('./auditService');
 const workflowService = require('./workflowService');
-const { buildRules, candidates, ruleForState } = require('./workflowEngine');
+const { buildRules, candidates, ruleForState, slaTimers, NO_TIMERS } = require('./workflowEngine');
+const notifications = require('./notificationService');
 const AppError = require('../utils/AppError');
 
 const AUDIT_BY_TARGET = Object.freeze({
@@ -72,6 +73,10 @@ async function transition(actor, requestId, to, { reason, extraSet = {}, extraAu
     set.decidedBy = actor._id;
     set.rejectionReason = reason;
   }
+  // The SLA clock: starts for the next step when a step is completed; stopped everywhere else
+  // (approved, rejected, waiting for the student, fulfilled).
+  if (rule.kind === 'advance' && to === S.UNDER_REVIEW) Object.assign(set, slaTimers(definition.steps[rule.stepIndex + 1], new Date()));
+  else Object.assign(set, NO_TIMERS);
 
   const entry = { from: rule.from, to, by: actor._id, at: new Date(), step: rule.stepLabel };
   if (to === S.REJECTED || to === S.NEEDS_INFO) entry.note = reason;
@@ -96,6 +101,8 @@ async function transition(actor, requestId, to, { reason, extraSet = {}, extraAu
     }
 
     if (afterUpdate) await afterUpdate(updated, session);
+    // Told in the same transaction as the change itself: exactly once, or not at all if it rolls back.
+    await notifications.onTransition({ request: updated, to, definition, session });
 
     for (const ev of extraAudit) {
       await audit.record({ actorId: actor._id, action: ev.action, requestId: updated._id, details: ev.details }, { session });
@@ -118,13 +125,15 @@ async function transition(actor, requestId, to, { reason, extraSet = {}, extraAu
  * to the step that asked, so the same reviewer sees it again. Atomic like every transition.
  */
 async function resubmit(student, requestId, { purpose } = {}) {
-  const pre = await Request.findOne({ _id: requestId, studentId: student._id }, 'status currentStepIndex');
+  const pre = await Request.findOne({ _id: requestId, studentId: student._id }, 'status currentStepIndex workflowDefinitionId');
   if (!pre) throw new AppError(404, 'Request not found');
   if (pre.status !== S.NEEDS_INFO) {
     throw new AppError(409, `Invalid status transition: request is ${pre.status}, expected ${S.NEEDS_INFO}`);
   }
   const to = pre.currentStepIndex === 0 ? S.PENDING : S.UNDER_REVIEW;
-  const set = { status: to };
+  const definition = await workflowService.getById(pre.workflowDefinitionId);
+  // The step that asked gets a fresh SLA clock: the time spent waiting for the student does not count.
+  const set = { status: to, ...slaTimers(definition && definition.steps[pre.currentStepIndex], new Date()) };
   if (purpose !== undefined) set.purpose = purpose;
   const entry = { from: S.NEEDS_INFO, to, by: student._id, at: new Date(), note: 'Resubmitted by student' };
 
@@ -140,6 +149,7 @@ async function resubmit(student, requestId, { purpose } = {}) {
       { actorId: student._id, action: 'REQUEST_RESUBMITTED', requestId: updated._id, details: { returnedTo: to } },
       { session }
     );
+    if (definition) await notifications.onResubmitted({ request: updated, definition, session });
     return updated;
   });
 }

@@ -236,6 +236,18 @@ Body: `name`, `email`, `password`, `role` (`CLERK` or `HOD` only), `department`.
 ### PATCH /api/admin/users/:id
 Body may contain `name`, `isActive`, `department`. Including `role`, `email` or `password` returns `400`. An admin cannot deactivate their own account.
 
+### Notifications (S5, details in [NOTIFICATIONS.md](NOTIFICATIONS.md))
+
+| Route | Notes |
+|---|---|
+| `GET /notifications` | the signed-in user's own in-app notifications; query `unread`, `page`, `limit` (max 100); `{ items, total, unreadCount, page, limit }`; `Cache-Control: no-store` |
+| `POST /notifications/:id/read`, `POST /notifications/read-all` | mark read; someone else's id is `404` |
+| `GET /notifications/preferences`, `PATCH /notifications/preferences` | `{ email: boolean }` for ordinary e-mail; `mailAvailable` says whether the server sends mail at all |
+| `GET /admin/notifications` | Admin: e-mail delivery log (`status`, `type`, `page`, `limit`): type, status, attempts, last problem, recipient name and role. Never content, address or link |
+| `POST /admin/notifications/:id/retry` | Admin: send a `FAILED` message again (`409` if it is not failed or was security mail); audited |
+
+Workflow steps (`PUT /admin/workflow`) accept `slaHours` (integer 1-720) and `escalateTo` (`CLERK`, `HOD` or `PRINCIPAL`, not the step's own role, needs `slaHours`); `400` otherwise.
+
 ### Institution configuration (Admin, S2)
 
 | Route | Purpose |

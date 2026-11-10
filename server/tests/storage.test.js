@@ -277,7 +277,7 @@ describe('malware scanner client', () => {
 describe('storage and scanning configuration guards (unit)', () => {
   function load(env) {
     const saved = { ...process.env };
-    const blank = { PUBLIC_URL: 'https://docflow.example.com', STORAGE_DRIVER: '', S3_ENDPOINT: '', S3_BUCKET: '', S3_ACCESS_KEY_ID: '', S3_SECRET_ACCESS_KEY: '', S3_REGION: '', SCAN_MODE: '', CLAMD_HOST: '', DOCUMENT_RETENTION_DAYS: '', VERIFY_SIGNING_KEY: '', HOST: '', TRUST_PROXY: '', UPLOAD_DIR: '' };
+    const blank = { MAIL_PROVIDER: '', PUBLIC_URL: 'https://docflow.example.com', STORAGE_DRIVER: '', S3_ENDPOINT: '', S3_BUCKET: '', S3_ACCESS_KEY_ID: '', S3_SECRET_ACCESS_KEY: '', S3_REGION: '', SCAN_MODE: '', CLAMD_HOST: '', DOCUMENT_RETENTION_DAYS: '', VERIFY_SIGNING_KEY: '', HOST: '', TRUST_PROXY: '', UPLOAD_DIR: '' };
     Object.assign(process.env, blank, env);
     try {
       let cfg;

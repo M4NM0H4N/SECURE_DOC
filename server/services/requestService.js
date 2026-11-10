@@ -8,7 +8,8 @@ const { runInTransaction } = require('../config/transactions');
 const audit = require('./auditService');
 const configService = require('./configService');
 const workflowService = require('./workflowService');
-const { buildRules, availableActions, currentStepLabel } = require('./workflowEngine');
+const { buildRules, availableActions, currentStepLabel, slaTimers } = require('./workflowEngine');
+const notifications = require('./notificationService');
 
 // Single source of truth for "which requests may this user see" (always inside the user's
 // institution, which the tenant plugin adds to every query).
@@ -48,6 +49,7 @@ async function createRequest(student, { documentType, purpose }) {
           status: REQUEST_STATUSES.PENDING,
           workflowDefinitionId: definition._id,
           currentStepIndex: 0,
+          ...slaTimers(definition.steps[0], new Date()),
           statusHistory: [{ from: null, to: REQUEST_STATUSES.PENDING, by: student._id, note: 'Request submitted' }],
         },
       ],
@@ -57,6 +59,7 @@ async function createRequest(student, { documentType, purpose }) {
       { actorId: student._id, action: 'REQUEST_SUBMITTED', requestId: request._id, details: { documentType: typeName } },
       { session }
     );
+    await notifications.onSubmitted({ request, definition, session });
     return request;
   });
 }

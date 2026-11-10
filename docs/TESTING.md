@@ -18,7 +18,7 @@ npm audit --omit=dev          # production dependency check
 | Check | Result |
 |---|---|
 | Test suites | 10 passed, 0 failed |
-| Tests | **423 passed, 0 failed** in 17 suites (requirement: at least 30). 238 are the MVP tests, adapted (tenant paths, configurable workflow, invitations, document store); 185 are new (tenancy 31, migration 5, configurable institution 26, accounts 40, 1 for the retired staff route, storage 32, trust 36, storage jobs 14) |
+| Tests | **487 passed, 0 failed** in 20 suites (requirement: at least 30). 238 are the MVP tests, adapted (tenant paths, configurable workflow, invitations, document store, mail config); 249 are new (tenancy 31, migration 5, configurable institution 26, accounts 40, 1 for the retired staff route, storage 32, trust 36, storage jobs 14, mail 28, notifications 20, SLA 16) |
 | ESLint (`server`, `scripts`) | 0 errors, 0 warnings |
 | `npm audit --omit=dev` | 0 vulnerabilities |
 
@@ -129,6 +129,17 @@ Done in the built-in browser during development, with throwaway demo data that w
 - QR encoder (`qrcode-generator` 1.4.4, vendored): codes for verification-style URLs decoded back exactly with an independent decoder (jsQR) at two error-correction levels. In the browser: the request page showed the document, its QR and link; the public verify page reported the document valid, accepted the genuine file and rejected an altered one.
 - `npm run test:unit`: 66 passed.
 - **Not verified:** a real R2 or S3 bucket, a real ClamAV daemon (see [TRUST.md](TRUST.md)).
+
+## Notifications, queue and SLAs (S5, checked 2026-11-10)
+
+- `mail.test.js` (28): every template renders with its link and no "undefined", HTML escaping against injected markup, the Resend provider against a fake HTTPS API (method, path, bearer key, JSON body, idempotency key; 400/401/422/429/500/503 and an unreachable host give only a status, never provider text), the in-memory outbox, and the mail/worker configuration guards.
+- `notifications.test.js` (20): a full lifecycle (submitted, step, approved, fulfilled) notifies exactly the right people (not the other department, an inactive clerk, the Principal, the Admin) with every (person, type, channel) exactly once and every e-mail sent once; rejection reason, questions and answers; two simultaneous approvals notify once; rollback leaves nothing queued; idempotent writes; opt-out and mail switched off; retry with the exact backoff (30 s, 2 min, 10 min, 1 h, 6 h), six attempts then FAILED, recovery sends once with the notification id as idempotency key, crash recovery after the lock time, two concurrent workers send each message once, address changes and deactivation respected, no addresses or links in stored errors; the in-app API; the Admin log (no content, filters, retry rules, audit); security mail recorded without its link and the token absent from the database; and a two-institution run (own recipients, own name and links, nothing readable or retryable across, sessions refused).
+- `sla.test.js` (16): timer arithmetic, validation, the clock starting/restarting/stopping with the workflow (including NEEDS_INFO pause and resume), reminder at 75% and escalation at the deadline each exactly once (three concurrent scanners), escalation targets and department scope, only the escalation when both are overdue, finished requests ignored, a request keeping the SLA of its chain version, the worker pass, and a scan across two institutions.
+- Mutation checks: not claiming the escalation timer made 2 tests fail; removing the worker's lock check 2; removing notification dedupe 1 (all restored).
+- Browser smoke test (throwaway database, dropped afterwards): the bell showed 1 unread for the Clerk, the page listed it, "Mark all as read" and the e-mail preference worked, the standalone worker delivered the mail (`{"sent":1,...}`), the SLA fields saved through the chain editor (version 2), and the delivery log listed the messages.
+- `npm run test:unit`: 86 passed.
+- Adaptations of existing tests (none deleted): the configuration-guard tests clear `MAIL_PROVIDER`, because the in-memory outbox is refused in production.
+- **Not verified:** a real mail provider (Resend) or real delivery.
 
 ## Not covered (be honest in the report)
 

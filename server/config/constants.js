@@ -93,7 +93,22 @@ const AUDIT_ACTIONS = Object.freeze([
   'DOCUMENT_REPLACED',
   'DOCUMENT_REVOKED',
   'DOCUMENT_REJECTED_INFECTED',
+  'NOTIFICATION_RETRIED',
 ]);
+
+// Notification outbox and SLA tuning (S5).
+const NOTIFY = Object.freeze({
+  MAX_ATTEMPTS: 6,
+  // Wait before the next try after attempt 1, 2, 3, ... (the last value repeats).
+  BACKOFF_MS: [30 * 1000, 2 * 60 * 1000, 10 * 60 * 1000, 60 * 60 * 1000, 6 * 60 * 60 * 1000],
+  // A claim older than this is assumed to belong to a crashed worker and may be taken again.
+  LOCK_MS: 5 * 60 * 1000,
+  BATCH: 25,
+  POLL_MS: 10 * 1000,
+  // The reminder goes out when this share of a step's SLA has passed.
+  REMINDER_FRACTION: 0.75,
+  MAX_SLA_HOURS: 24 * 30,
+});
 
 // Account-security tuning (S3).
 const SECURITY = Object.freeze({
@@ -111,6 +126,7 @@ const SECURITY = Object.freeze({
 module.exports = {
   AUDIT_ACTIONS,
   SECURITY,
+  NOTIFY,
   ROLES,
   STAFF_ROLES,
   WORKFLOW_STEP_ROLES,

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Notifications | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/requests.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header id="topbar"></header>
+  <main id="main" class="container page stack">
+    <div class="req-head">
+      <h1>Notifications</h1>
+      <a id="back" class="btn btn--ghost btn--sm" href="./">Back</a>
+    </div>
+    <div id="page-alert" class="hidden" role="alert"></div>
+    <div id="content" class="stack hidden">
+      <section class="card stack" aria-labelledby="h-prefs" id="prefs">
+        <h2 id="h-prefs">E-mail</h2>
+        <label class="row"><input type="checkbox" id="email-pref"> <span>E-mail me about request updates</span></label>
+        <p class="hint" id="pref-hint">Security e-mails (invitations, password resets, verification) are always sent.</p>
+      </section>
+      <div class="actions">
+        <button class="btn btn--ghost btn--sm" id="mark-all" type="button">Mark all as read</button>
+        <label class="row"><input type="checkbox" id="only-unread"> <span>Unread only</span></label>
+      </div>
+      <div id="list-state" class="state"></div>
+      <div id="list" class="stack"></div>
+      <button class="btn btn--ghost hidden" id="more" type="button">Load more</button>
+    </div>
+  </main>
+  <script type="module" src="/js/notifications.js"></script>
+</body>
+</html>

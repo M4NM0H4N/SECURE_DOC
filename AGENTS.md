@@ -29,6 +29,7 @@ HTML/CSS/vanilla JS · Node.js + Express · MongoDB + Mongoose · JWT (HttpOnly 
 - `authenticate` re-loads user and checks `isActive` on every request.
 - Status changes only through the atomic transition service; invalid → 409.
 - Rejection requires a reason.
+- Notifications: written in the same transaction as the event (exactly once), delivered by the worker with retries; security mail (secret links) is never stored or logged; nothing is reassigned or decided automatically by an SLA.
 - Uploads: PDF/JPG/PNG, ≤ 5 MB, magic-byte check, malware scan before storing (fails closed in production), random tenant-prefixed key through the storage interface (local or private S3/R2), never inside `client/`, downloads streamed through an authenticated endpoint. No public or presigned URLs. Replaced/revoked documents keep their record.
 - Audit log is application-level append-only; never claim immutability; no update/delete API; no secrets in details.
 - Do not assume transactions on standalone MongoDB; document actual mode.

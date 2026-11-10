@@ -21,6 +21,26 @@ export async function requireUser(allowedRoles) {
   return user;
 }
 
+// Link to the notifications page with the unread count, refreshed every minute. A failed lookup just
+// leaves the count off: it must never get in the way of the page.
+function bell() {
+  const count = el('span', { class: 'badge hidden', text: '0' });
+  const link = el('a', { class: 'btn btn--ghost btn--sm', href: tpath('/notifications.html'), 'aria-label': 'Notifications' }, el('span', { text: 'Notifications ' }), count);
+  const refresh = async () => {
+    try {
+      const { unreadCount } = await api('/notifications?unread=true&limit=1');
+      count.textContent = unreadCount > 99 ? '99+' : String(unreadCount);
+      count.classList.toggle('hidden', unreadCount === 0);
+      link.setAttribute('aria-label', unreadCount ? `Notifications, ${unreadCount} unread` : 'Notifications');
+    } catch (_e) {
+      /* leave as is */
+    }
+  };
+  refresh();
+  setInterval(refresh, 60000);
+  return link;
+}
+
 function renderTopbar(user) {
   const host = document.getElementById('topbar');
   if (!host) return;
@@ -57,6 +77,7 @@ function renderTopbar(user) {
       el('span', { class: 'badge', text: user.role }),
       user.department ? el('span', { class: 'muted', text: user.department }) : ''
     ),
+    bell(),
     el('a', { class: 'btn btn--ghost btn--sm', href: tpath('/account.html'), text: 'Account' }),
     logout
   );

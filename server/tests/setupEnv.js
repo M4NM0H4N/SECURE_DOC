@@ -15,3 +15,5 @@ process.env.MFA_ENCRYPTION_KEY = 'test-mfa-key-test-mfa-key-test-mfa-key-1234';
 process.env.VERIFY_SIGNING_KEY = 'test-verify-key-test-verify-key-test-1234';
 process.env.SCAN_MODE = 'off';
 process.env.STORAGE_DRIVER = 'local';
+// S5: mail goes to the in-memory outbox in tests unless a test chooses another provider.
+process.env.MAIL_PROVIDER = 'outbox';

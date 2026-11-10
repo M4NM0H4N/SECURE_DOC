@@ -11,7 +11,7 @@
 //   APPROVED  -> FULFILLED  (a Clerk of the request's department uploads the document)
 //
 // With the default definition this yields exactly the MVP's four transitions.
-const { REQUEST_STATUSES: S, ROLES, WORKFLOW_STEP_ROLES } = require('../config/constants');
+const { REQUEST_STATUSES: S, ROLES, WORKFLOW_STEP_ROLES, NOTIFY } = require('../config/constants');
 const AppError = require('../utils/AppError');
 
 function buildRules(definition) {
@@ -84,7 +84,21 @@ function normaliseSteps(input) {
     let key = slug(label);
     for (let n = 2; used.has(key); n += 1) key = `${slug(label)}-${n}`;
     used.add(key);
-    return { key, label, role: raw.role, departmentScoped: raw.role !== ROLES.PRINCIPAL, canReject: raw.canReject === true };
+    let slaHours = null;
+    if (raw.slaHours !== undefined && raw.slaHours !== null && raw.slaHours !== '') {
+      if (!Number.isInteger(raw.slaHours) || raw.slaHours < 1 || raw.slaHours > NOTIFY.MAX_SLA_HOURS) {
+        throw new AppError(400, `Step ${i + 1}: slaHours must be a whole number from 1 to ${NOTIFY.MAX_SLA_HOURS}`);
+      }
+      slaHours = raw.slaHours;
+    }
+    let escalateTo = null;
+    if (raw.escalateTo !== undefined && raw.escalateTo !== null && raw.escalateTo !== '') {
+      if (!WORKFLOW_STEP_ROLES.includes(raw.escalateTo)) throw new AppError(400, `Step ${i + 1}: escalateTo must be one of ${WORKFLOW_STEP_ROLES.join(', ')}`);
+      if (slaHours === null) throw new AppError(400, `Step ${i + 1}: escalateTo needs slaHours`);
+      if (raw.escalateTo === raw.role) throw new AppError(400, `Step ${i + 1}: escalate to a different role than the step's own`);
+      escalateTo = raw.escalateTo;
+    }
+    return { key, label, role: raw.role, departmentScoped: raw.role !== ROLES.PRINCIPAL, canReject: raw.canReject === true, slaHours, escalateTo };
   });
   if (!steps.some((s) => s.canReject)) {
     throw new AppError(400, 'At least one step must be allowed to reject, otherwise a request can never be declined');
@@ -92,4 +106,14 @@ function normaliseSteps(input) {
   return steps;
 }
 
-module.exports = { buildRules, candidates, ruleForState, availableActions, currentStepLabel, normaliseSteps };
+// The SLA clock for a request that has just entered a step (at time `from`). Steps without an SLA have no
+// timers. The reminder fires after REMINDER_FRACTION of the time, the escalation at the deadline.
+function slaTimers(step, from = new Date()) {
+  const base = { stepEnteredAt: from, slaReminderAt: null, slaDueAt: null };
+  if (!step || !step.slaHours) return base;
+  const ms = step.slaHours * 60 * 60 * 1000;
+  return { stepEnteredAt: from, slaReminderAt: new Date(from.getTime() + ms * NOTIFY.REMINDER_FRACTION), slaDueAt: new Date(from.getTime() + ms) };
+}
+const NO_TIMERS = Object.freeze({ slaReminderAt: null, slaDueAt: null });
+
+module.exports = { buildRules, candidates, ruleForState, availableActions, currentStepLabel, normaliseSteps, slaTimers, NO_TIMERS };

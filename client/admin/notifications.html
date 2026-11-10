@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>E-mail delivery | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/requests.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header id="topbar"></header>
+  <main id="main" class="container page stack">
+    <div class="req-head">
+      <h1>E-mail delivery</h1>
+      <a class="btn btn--ghost btn--sm" href="./">Back to users</a>
+    </div>
+    <p class="muted">Every e-mail the system tried to send, with its outcome. Message text and links are never shown here. A failed message can be tried again.</p>
+    <div id="page-alert" class="hidden" role="alert"></div>
+    <div id="content" class="stack hidden">
+      <div class="field filter">
+        <label for="status-filter">Status</label>
+        <select class="select" id="status-filter"></select>
+      </div>
+      <div id="list-state" class="state"></div>
+      <div class="table-wrap">
+        <table class="table">
+          <caption class="sr-only">E-mail delivery log</caption>
+          <thead><tr><th>When</th><th>To</th><th>Kind</th><th>Status</th><th>Tries</th><th>Last problem</th><th><span class="sr-only">Actions</span></th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table>
+      </div>
+      <button class="btn btn--ghost hidden" id="more" type="button">Load more</button>
+    </div>
+  </main>
+  <script type="module" src="/js/notifications-admin.js"></script>
+</body>
+</html>

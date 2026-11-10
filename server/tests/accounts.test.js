@@ -94,7 +94,7 @@ describe('TOTP (unit)', () => {
   test('(unit) configuration guards: PUBLIC_URL and MFA key', () => {
     const load = (env) => {
       const saved = { ...process.env };
-      Object.assign(process.env, { PUBLIC_URL: '', MFA_ENCRYPTION_KEY: '', HOST: '', TRUST_PROXY: '', UPLOAD_DIR: '', ...env });
+      Object.assign(process.env, { PUBLIC_URL: '', MFA_ENCRYPTION_KEY: '', MAIL_PROVIDER: '', HOST: '', TRUST_PROXY: '', UPLOAD_DIR: '', ...env });
       try {
         let cfg;
         jest.isolateModules(() => {

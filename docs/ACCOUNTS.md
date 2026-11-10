@@ -51,7 +51,11 @@ Optional for Clerk, HOD, Principal and Admin (not students). Needs `MFA_ENCRYPTI
 - **Disable** needs the password and a current or backup code, and ends all sessions.
 - TOTP is implemented in `server/utils/totp.js` with Node's crypto, and checked against the RFC's published test vectors. A library (`otplib`) was tried first and removed: its dependency chain is ESM-only, which the CommonJS test setup cannot load, and the algorithm is about forty lines.
 
-## Mail delivery until S5
+## Mail delivery
+
+**Update (S5):** mail is now real: `MAIL_PROVIDER=resend` sends through Resend, and security mail is sent immediately with one retry and recorded without its link; see [NOTIFICATIONS.md](NOTIFICATIONS.md). The text below describes S3 and still applies where no provider is configured.
+
+### As it was in S3
 
 `server/services/mailer.js` is an interface: in development and tests messages go to an in-memory outbox (tests read it); in production nothing is sent and the message (which contains a secret link) is never logged. Nothing relies on delivery succeeding. `PUBLIC_URL` (an https origin, required in production) is the base of every link; it is never taken from the request's Host header, which a visitor could forge.
 

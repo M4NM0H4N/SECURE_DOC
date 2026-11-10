@@ -77,6 +77,17 @@ const config = {
   // Signs document verification codes (QR). Separate from JWT_SECRET. Optional: without it no
   // verification codes are issued.
   verifyKey: process.env.VERIFY_SIGNING_KEY || '',
+  // E-mail (S5). outbox = in-memory, for development and tests only; resend = Resend's HTTPS API;
+  // none = no e-mail is sent (the production default until a provider is configured).
+  mailProvider: (process.env.MAIL_PROVIDER || (isProd ? 'none' : 'outbox')).trim(),
+  mailFrom: (process.env.MAIL_FROM || '').trim(),
+  resend: {
+    apiKey: process.env.RESEND_API_KEY || '',
+    apiUrl: (process.env.RESEND_API_URL || 'https://api.resend.com').trim().replace(/\/+$/, ''),
+  },
+  // Also run the notification worker inside the web process (small deployments). Otherwise run
+  // "npm run worker" as its own process.
+  workerInline: process.env.WORKER_INLINE === 'true',
 };
 
 if (config.jwtSecret.length < 32) {
@@ -122,6 +133,21 @@ if (!Number.isInteger(config.retentionDays) || config.retentionDays < 1) {
 }
 if (config.verifyKey && config.verifyKey.length < 32) {
   throw new Error('VERIFY_SIGNING_KEY must be at least 32 characters (or leave it unset to disable verification codes)');
+}
+
+if (!['outbox', 'resend', 'none'].includes(config.mailProvider)) {
+  throw new Error('MAIL_PROVIDER must be "outbox", "resend" or "none"');
+}
+if (isProd && config.mailProvider === 'outbox') {
+  throw new Error('MAIL_PROVIDER=outbox keeps mail in memory and is not allowed in production; use "resend" or "none"');
+}
+if (config.mailProvider === 'resend') {
+  if (!config.resend.apiKey) throw new Error('MAIL_PROVIDER=resend needs RESEND_API_KEY');
+  if (!/^([^<>\s@]+@[^<>\s@]+\.[^<>\s@]+|[^<>]+<[^<>\s@]+@[^<>\s@]+\.[^<>\s@]+>)$/.test(config.mailFrom)) {
+    throw new Error('MAIL_FROM must be an address such as no-reply@example.com or "Name <no-reply@example.com>"');
+  }
+  if (!/^https?:\/\/[^\s/?#]+$/.test(config.resend.apiUrl)) throw new Error('RESEND_API_URL must be an origin such as https://api.resend.com');
+  if (isProd && !config.resend.apiUrl.startsWith('https://')) throw new Error('RESEND_API_URL must use https in production');
 }
 
 if (config.signupKey && config.signupKey.length < 16) {

@@ -2,6 +2,7 @@
 
 const config = require('../config/env');
 const User = require('../models/User');
+const Tenant = require('../models/Tenant');
 const Invite = require('../models/Invite');
 const AuthToken = require('../models/AuthToken');
 const { STAFF_ROLES, DEPARTMENT_ROLES, SECURITY } = require('../config/constants');
@@ -12,17 +13,39 @@ const authService = require('./authService');
 const configService = require('./configService');
 const audit = require('./auditService');
 const mailer = require('./mailer');
+const notifications = require('./notificationService');
 
 const INVALID_LINK = 'This link is invalid or has expired';
 const link = (slug, page, token) => `${config.publicUrl}/t/${slug}/${page}?token=${token}`;
 const inFuture = (ms) => new Date(Date.now() + ms);
 
 // Mail problems must never change what the caller sees (and never expose a link in an error).
-async function sendQuietly(message) {
+// Security mail carries a secret link, so it is sent straight away (one retry) rather than queued: a
+// stored copy would keep the link in the database. Whether it worked is recorded WITHOUT the link, so
+// an Admin can see a failed invitation and hand the link over instead. Does nothing when mail is off.
+const SECURITY_TYPES = { 'staff-invite': 'SECURITY_INVITE', 'password-reset': 'SECURITY_RESET', 'verify-email': 'SECURITY_VERIFY' };
+async function sendQuietly(message, { userId = null } = {}) {
+  if (!mailer.enabled()) return;
+  // Name the institution in the message (taken from the slug in the link, never from user input).
+  const slug = /\/t\/([a-z0-9-]+)\//.exec((message.data && message.data.link) || '');
+  if (slug) {
+    const tenant = await Tenant.findOne({ slug: slug[1] }, 'name');
+    if (tenant) message = { ...message, data: { ...message.data, institution: tenant.name } };
+  }
+  let error = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      await mailer.send(message);
+      error = null;
+      break;
+    } catch (err) {
+      error = (err && err.message) || 'delivery failed';
+    }
+  }
   try {
-    await mailer.send(message);
+    await notifications.recordSecurityMail({ type: SECURITY_TYPES[message.template] || 'SECURITY_OTHER', userId, ok: !error, error });
   } catch (_err) {
-    /* delivery is best effort until S5 */
+    /* the record is best effort */
   }
 }
 
@@ -62,7 +85,7 @@ async function requestReset(email, slug) {
   const user = await User.findOne({ email, isActive: true });
   if (!user) return;
   const url = await issueResetToken(user, slug);
-  await sendQuietly({ to: user.email, template: 'password-reset', data: { link: url, name: user.name } });
+  await sendQuietly({ to: user.email, template: 'password-reset', data: { link: url, name: user.name } }, { userId: user._id });
 }
 
 async function resetPassword(token, newPassword) {
@@ -89,7 +112,7 @@ async function issueResetLinkForUser(actor, userId, slug) {
   if (!user) throw new AppError(404, 'User not found');
   const url = await issueResetToken(user, slug);
   await audit.recordSafe({ actorId: actor._id, action: 'PASSWORD_RESET_ISSUED', details: { userId: String(user._id) } });
-  await sendQuietly({ to: user.email, template: 'password-reset', data: { link: url, name: user.name } });
+  await sendQuietly({ to: user.email, template: 'password-reset', data: { link: url, name: user.name } }, { userId: user._id });
   return url;
 }
 
@@ -100,7 +123,7 @@ async function sendVerification(user, slug) {
   const token = newToken();
   await AuthToken.create({ userId: user._id, type: 'VERIFY_EMAIL', tokenHash: hashToken(token), expiresAt: inFuture(SECURITY.VERIFY_TTL_MS) });
   const url = link(slug, 'verify-email.html', token);
-  await sendQuietly({ to: user.email, template: 'verify-email', data: { link: url, name: user.name } });
+  await sendQuietly({ to: user.email, template: 'verify-email', data: { link: url, name: user.name } }, { userId: user._id });
   return url;
 }
 

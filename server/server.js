@@ -6,6 +6,7 @@ const { prepareUploadDir } = require('./config/storage');
 const { getStorage } = require('./storage');
 const createApp = require('./app');
 const { detectMode } = require('./config/transactions');
+const worker = require('./services/notificationWorker');
 
 async function main() {
   await connectDb(config.mongoUri);
@@ -28,6 +29,13 @@ async function main() {
   const onListening = () => {
     console.log(`Server listening on ${config.host || 'all interfaces'}:${config.port} (${config.env})`);
   };
+  console.log(`Mail provider: ${config.mailProvider}`);
+  if (config.workerInline) {
+    worker.start();
+    console.log('Notification worker running inside this process (WORKER_INLINE=true)');
+  } else {
+    console.log('Notification worker not started here: run "npm run worker" as its own process (or set WORKER_INLINE=true).');
+  }
   if (config.host) app.listen(config.port, config.host, onListening);
   else app.listen(config.port, onListening);
 }

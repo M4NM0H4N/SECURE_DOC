@@ -27,6 +27,11 @@ const requestSchema = new mongoose.Schema(
     // 0-based index of the step it is currently waiting on.
     workflowDefinitionId: { type: mongoose.Schema.Types.ObjectId, ref: 'WorkflowDefinition', required: true },
     currentStepIndex: { type: Number, default: 0, min: 0, max: 5 },
+    // SLA timers (S5) for the step the request is waiting on; null when the step has no SLA or the
+    // clock is stopped (NEEDS_INFO, approved, finished). Each is consumed once by the SLA scanner.
+    stepEnteredAt: { type: Date, default: null },
+    slaReminderAt: { type: Date, default: null },
+    slaDueAt: { type: Date, default: null },
     purpose: { type: String, required: true, trim: true, minlength: 10, maxlength: 500 },
     status: {
       type: String,
@@ -47,6 +52,8 @@ const requestSchema = new mongoose.Schema(
 requestSchema.plugin(tenantScope);
 requestSchema.index({ tenantId: 1, department: 1, status: 1, createdAt: -1 });
 requestSchema.index({ tenantId: 1, studentId: 1, createdAt: -1 });
+requestSchema.index({ slaReminderAt: 1 }, { partialFilterExpression: { slaReminderAt: { $type: 'date' } } });
+requestSchema.index({ slaDueAt: 1 }, { partialFilterExpression: { slaDueAt: { $type: 'date' } } });
 
 requestSchema.set('toJSON', {
   transform(_doc, ret) {

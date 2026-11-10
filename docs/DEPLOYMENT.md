@@ -45,6 +45,8 @@ Render injects `PORT` (10000 by default). The app listens on it and binds `0.0.0
 | `PUBLIC_URL` | yes | the https origin of the service (for example `https://docflow.onrender.com`). The app refuses to start without it: it is the base of every invitation and reset link |
 | `MFA_ENCRYPTION_KEY` | optional | 32+ characters; enables two-step sign-in. Never reuse `JWT_SECRET`. Losing it makes enrolled authenticator secrets unreadable |
 | `JWT_SECRET` | yes | a new production-only secret, at least 32 characters. Generate: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
+| `MAIL_PROVIDER` (+ `MAIL_FROM`, `RESEND_API_KEY`) | `resend` to send e-mail | default in production is `none` (nothing is sent; people still see in-app notifications). `outbox` is refused in production. Verify the sender domain with your provider first |
+| `WORKER_INLINE` | `true`, or a second process | the notification worker (e-mail delivery and SLA reminders) must run somewhere: either set `WORKER_INLINE=true` on the web service, or add a Render **Background Worker** running `npm run worker` with the same environment. Without it nothing is delivered and no SLA fires |
 | `STORAGE_DRIVER` | recommended `s3` | with `s3`, documents live in a private bucket (Cloudflare R2) instead of the server disk, so no persistent disk is needed and several instances can run. Also set `S3_ENDPOINT` (https), `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (a token limited to that one bucket). See [TRUST.md](TRUST.md) |
 | `CLAMD_HOST` (+ `CLAMD_PORT`) | yes, or `SCAN_MODE=off` | a ClamAV daemon on a separate private host. In production the app **refuses to start** without it unless you set `SCAN_MODE=off` on purpose |
 | `VERIFY_SIGNING_KEY` | optional | 32+ characters; enables document verification QR codes |
@@ -118,6 +120,8 @@ Render configuration:
 - [ ] Web Service, build `npm ci`, start `npm start`, health check `/healthz`
 - [ ] Environment variables from section 4
 - [ ] Document storage chosen: either `STORAGE_DRIVER=s3` with the R2 bucket settings (preferred), or a persistent disk at `/var/data` with `UPLOAD_DIR=/var/data/uploads`
+- [ ] Notification worker running (`WORKER_INLINE=true` or a Background Worker with `npm run worker`)
+- [ ] Mail provider configured, one real test message received (`MAIL_PROVIDER=resend`), or e-mail knowingly left off
 - [ ] ClamAV daemon reachable (`CLAMD_HOST`), or `SCAN_MODE=off` chosen knowingly
 - [ ] First real upload, download, replace and verification link tried against the real bucket (the R2 adapter has only been tested against a fake)
 - [ ] `npm run storage:cleanup` scheduled (dry run first)

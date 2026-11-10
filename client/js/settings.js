@@ -30,7 +30,25 @@ function init() {
       const role = el('select', { class: 'select', 'aria-label': `Step ${i + 1} role` });
       for (const [value, text] of Object.entries(ROLE_LABELS)) role.append(el('option', { value, text }));
       role.value = s.role;
-      role.addEventListener('change', () => (s.role = role.value));
+      role.addEventListener('change', () => {
+        s.role = role.value;
+        if (s.escalateTo === s.role) s.escalateTo = null; // cannot escalate to its own role
+        renderSteps();
+      });
+      const sla = el('input', { class: 'input', type: 'number', min: '1', max: '720', step: '1', placeholder: 'No deadline', 'aria-label': `Step ${i + 1} deadline in hours` });
+      sla.value = s.slaHours ? String(s.slaHours) : '';
+      sla.addEventListener('input', () => {
+        s.slaHours = sla.value === '' ? null : Number(sla.value);
+        if (!s.slaHours) s.escalateTo = null;
+        esc.disabled = !s.slaHours;
+        if (!s.slaHours) esc.value = '';
+      });
+      const esc = el('select', { class: 'select', 'aria-label': `Step ${i + 1} escalate overdue requests to` });
+      esc.append(el('option', { value: '', text: "The step's own role" }));
+      for (const [value, text] of Object.entries(ROLE_LABELS)) if (value !== s.role) esc.append(el('option', { value, text: `Escalate to ${text}` }));
+      esc.value = s.escalateTo || '';
+      esc.disabled = !s.slaHours;
+      esc.addEventListener('change', () => (s.escalateTo = esc.value || null));
       const rej = el('input', { type: 'checkbox', id: `rej-${i}` });
       rej.checked = Boolean(s.canReject);
       rej.addEventListener('change', () => (s.canReject = rej.checked));
@@ -47,6 +65,8 @@ function init() {
           el('strong', { text: `Step ${i + 1}` }),
           el('div', { class: 'form-row form-row--2' }, label, role),
           el('label', { for: `rej-${i}` }, rej, el('span', { text: ' May reject requests at this step' })),
+          el('div', { class: 'form-row form-row--2' }, sla, esc),
+          el('p', { class: 'hint', text: 'Deadline in hours (optional). A reminder goes out at 75% of it; when it passes, the escalation role is told. Nothing is decided automatically.' }),
           el(
             'div',
             { class: 'actions' },
@@ -74,7 +94,7 @@ function init() {
 
   async function loadWorkflow() {
     const { workflow } = await api('/admin/workflow');
-    steps = workflow.steps.map((s) => ({ label: s.label, role: s.role, canReject: s.canReject }));
+    steps = workflow.steps.map((s) => ({ label: s.label, role: s.role, canReject: s.canReject, slaHours: s.slaHours || null, escalateTo: s.escalateTo || null }));
     const bits = [`Version ${workflow.version}.`];
     if (workflow.requestsOnOlderVersions) bits.push(`${workflow.requestsOnOlderVersions} request(s) are still finishing under an earlier chain.`);
     if (workflow.rolesWithoutActiveStaff.length) {
