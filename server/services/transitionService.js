@@ -7,6 +7,7 @@ const audit = require('./auditService');
 const workflowService = require('./workflowService');
 const { buildRules, candidates, ruleForState, slaTimers, NO_TIMERS } = require('./workflowEngine');
 const notifications = require('./notificationService');
+const webhooks = require('./webhookService');
 const AppError = require('../utils/AppError');
 
 const AUDIT_BY_TARGET = Object.freeze({
@@ -103,6 +104,11 @@ async function transition(actor, requestId, to, { reason, extraSet = {}, extraAu
     if (afterUpdate) await afterUpdate(updated, session);
     // Told in the same transaction as the change itself: exactly once, or not at all if it rolls back.
     await notifications.onTransition({ request: updated, to, definition, session });
+    await webhooks.emit(
+      'request.status_changed',
+      { requestId: String(updated._id), documentType: updated.documentType, department: updated.department, previousStatus: rule.from, status: to, step: rule.stepLabel },
+      { session, key: `status:${updated._id}:${updated.statusHistory.length}` }
+    );
 
     for (const ev of extraAudit) {
       await audit.record({ actorId: actor._id, action: ev.action, requestId: updated._id, details: ev.details }, { session });

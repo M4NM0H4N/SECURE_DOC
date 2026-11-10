@@ -146,4 +146,21 @@ async function closedPort() {
   return port;
 }
 
-module.exports = { startFakeS3, startFakeClamd, closedPort, EICAR, FAKE_S3, crypto };
+// ---- fake webhook receiver ---------------------------------------------------------------------
+// Records every request; the answer is whatever state.status says (and an optional Location).
+async function startFakeReceiver({ status = 200 } = {}) {
+  const state = { status, location: null, requests: [] };
+  const server = http.createServer((req, res) => {
+    const chunks = [];
+    req.on('data', (c) => chunks.push(c));
+    req.on('end', () => {
+      state.requests.push({ method: req.method, url: req.url, headers: req.headers, body: Buffer.concat(chunks).toString() });
+      res.writeHead(state.status, state.location ? { location: state.location } : {});
+      res.end('{"received":true}');
+    });
+  });
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  return { state, port: server.address().port, url: `http://127.0.0.1:${server.address().port}/hook`, close: () => new Promise((r) => { server.close(r); server.closeAllConnections?.(); }) };
+}
+
+module.exports = { startFakeS3, startFakeClamd, startFakeReceiver, closedPort, EICAR, FAKE_S3, crypto };

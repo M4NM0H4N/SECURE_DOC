@@ -1,4 +1,7 @@
 import { api, el, ROLE_HOME, tpath } from './api.js';
+import { applyBranding } from './branding.js';
+
+applyBranding();
 
 const LOGO =
   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>';
@@ -89,6 +92,7 @@ function renderTopbar(user) {
 
   host.className = 'topbar';
   host.append(el('div', { class: 'container topbar-wrap' }, el('div', { class: 'topbar-inner' }, brand, toggle), menu));
+  applyBranding(); // the brand link exists now: add the logo and the institution's name
 }
 
 export function showAlert(container, message, type = 'error') {

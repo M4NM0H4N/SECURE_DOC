@@ -88,6 +88,13 @@ const config = {
   // Also run the notification worker inside the web process (small deployments). Otherwise run
   // "npm run worker" as its own process.
   workerInline: process.env.WORKER_INLINE === 'true',
+  // Outgoing webhooks (S7). The signing secrets are encrypted with this key (32+ characters);
+  // webhooks are unavailable while it is unset. WEBHOOK_ALLOW_PRIVATE lets them reach http and
+  // private addresses: for local development and tests ONLY (refused in production).
+  webhookKey: process.env.WEBHOOK_ENCRYPTION_KEY || '',
+  webhookAllowPrivate: process.env.WEBHOOK_ALLOW_PRIVATE === 'true',
+  // Requests per key per 15 minutes on the integration API.
+  apiRateLimitMax: Number(process.env.API_RATE_LIMIT_MAX) || 300,
 };
 
 if (config.jwtSecret.length < 32) {
@@ -148,6 +155,13 @@ if (config.mailProvider === 'resend') {
   }
   if (!/^https?:\/\/[^\s/?#]+$/.test(config.resend.apiUrl)) throw new Error('RESEND_API_URL must be an origin such as https://api.resend.com');
   if (isProd && !config.resend.apiUrl.startsWith('https://')) throw new Error('RESEND_API_URL must use https in production');
+}
+
+if (config.webhookKey && config.webhookKey.length < 32) {
+  throw new Error('WEBHOOK_ENCRYPTION_KEY must be at least 32 characters (or leave it unset to disable webhooks)');
+}
+if (isProd && config.webhookAllowPrivate) {
+  throw new Error('WEBHOOK_ALLOW_PRIVATE is for development and tests only and is refused in production');
 }
 
 if (config.signupKey && config.signupKey.length < 16) {

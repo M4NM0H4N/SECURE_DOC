@@ -273,3 +273,12 @@ Audit actions: `USER_REGISTERED`, `USER_LOGIN`, `USER_CREATED_BY_ADMIN`, `USER_A
 { "actorId": { "name": "Demo Clerk", "role": "CLERK" }, "action": "REQUEST_REVIEWED",
   "requestId": "…", "details": { "previousStatus": "PENDING", "newStatus": "UNDER_REVIEW" }, "timestamp": "…" }
 ```
+
+## S7 additions
+See `docs/INTEGRATIONS.md` for the full description.
+- `GET /requests`, `/admin/users`, `/admin/audit-logs`: `q`, `from`, `to`, `sort`, `order` (plus existing filters). `GET /requests/export.csv`, `/admin/users/export.csv`, `/admin/audit-logs/export.csv`.
+- `GET /admin/audit-logs/verify`: hash-chain check `{ ok, checked, head, brokenAt }`.
+- `GET /branding` (public), `PUT /admin/branding`, `POST|DELETE /admin/branding/logo`.
+- `GET /analytics/summary` (Admin, Principal).
+- `GET|POST|DELETE /admin/api-keys`; `GET|POST|PATCH|DELETE /admin/webhooks`, `POST /admin/webhooks/:id/test`, `GET /admin/webhooks/:id/deliveries`.
+- Integration API `/api/t/<slug>/v1/*` authenticated by API key; contract in `docs/openapi.json`.

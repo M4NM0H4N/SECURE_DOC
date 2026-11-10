@@ -6,6 +6,7 @@ const { REQUEST_STATUSES } = require('../config/constants');
 const documentService = require('../services/documentService');
 const auditService = require('../services/auditService');
 const asyncHandler = require('../utils/asyncHandler');
+const { sendCsv } = require('../utils/csv');
 const { ok } = require('../utils/response');
 
 // Only documentType and purpose are read from the body (mass-assignment safe).
@@ -15,9 +16,18 @@ const create = asyncHandler(async (req, res) => {
   return ok(res, { request }, 201, 'Request submitted');
 });
 
+const listParams = (q) => ({ status: q.status, department: q.department, documentType: q.documentType, q: q.q, from: q.from, to: q.to, sort: q.sort, order: q.order, page: q.page, limit: q.limit });
+
 const list = asyncHandler(async (req, res) => {
-  const { status, page, limit } = req.query;
-  return ok(res, await requestService.listRequests(req.user, { status, page, limit }));
+  return ok(res, await requestService.listRequests(req.user, listParams(req.query)));
+});
+
+// CSV of the same filtered list (the same scope rules apply, so it can only contain what the list shows).
+const exportCsv = asyncHandler(async (req, res) => {
+  const { header, rows, truncated } = await requestService.exportRequests(req.user, listParams(req.query));
+  await auditService.recordSafe({ actorId: req.user._id, action: 'DATA_EXPORTED', details: { kind: 'requests', rows: rows.length } });
+  if (truncated) res.setHeader('X-Export-Truncated', 'true');
+  sendCsv(res, `requests-${new Date().toISOString().slice(0, 10)}.csv`, header, rows);
 });
 
 const getOne = asyncHandler(async (req, res) => {
@@ -99,6 +109,6 @@ const downloadDocument = sendDocument(false);
 const downloadDocumentById = sendDocument(true);
 
 module.exports = {
-  create, list, getOne, review, approve, reject, advanceStep, needsInfo, resubmit,
+  create, list, exportCsv, getOne, review, approve, reject, advanceStep, needsInfo, resubmit,
   uploadDocument, addDocument, replaceDocument, revokeDocument, listDocuments, downloadDocument, downloadDocumentById,
 };

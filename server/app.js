@@ -18,6 +18,9 @@ const platformRoutes = require('./routes/platformRoutes');
 const metaRoutes = require('./routes/metaRoutes');
 const verifyRoutes = require('./routes/verifyRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const brandingRoutes = require('./routes/brandingRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const createApiV1Router = require('./routes/apiV1Routes');
 const resolveTenant = require('./middleware/resolveTenant');
 const { SLUG_PATTERN } = require('./models/Tenant');
 
@@ -26,6 +29,7 @@ function createApp({
   uploadRateLimitMax = 30,
   apiRateLimitMax = 1000,
   trustProxy = config.trustProxy,
+  apiKeyRateLimitMax = config.apiRateLimitMax,
 } = {}) {
   const app = express();
   app.disable('x-powered-by');
@@ -117,6 +121,9 @@ function createApp({
   tenantApi.use('/auth', authRoutes);
   tenantApi.use('/meta', metaRoutes);
   tenantApi.use('/notifications', notificationRoutes);
+  tenantApi.use('/branding', brandingRoutes);
+  tenantApi.use('/analytics', analyticsRoutes);
+  tenantApi.use('/v1', createApiV1Router({ max: apiKeyRateLimitMax }));
   tenantApi.use('/admin', adminRoutes);
   tenantApi.use('/requests', requestRoutes);
   app.use('/api/t/:slug', tenantApi);

@@ -14,6 +14,10 @@ const auditLogSchema = new mongoose.Schema(
     requestId: { type: mongoose.Schema.Types.ObjectId, ref: 'Request', default: null, index: true },
     details: { type: mongoose.Schema.Types.Mixed, default: {} },
     timestamp: { type: Date, default: Date.now, index: true },
+    // Hash chain (S7): position in the institution's chain, the previous entry's hash and this one's.
+    seq: { type: Number, default: null },
+    prevHash: { type: String, default: null },
+    hash: { type: String, default: null },
   },
   { versionKey: false }
 );
@@ -21,6 +25,7 @@ const auditLogSchema = new mongoose.Schema(
 // tenantId is null only for platform events (SUPER_ADMIN login); tenant admins never see those.
 auditLogSchema.plugin(tenantScope, { required: false });
 auditLogSchema.index({ tenantId: 1, timestamp: -1 });
+auditLogSchema.index({ tenantId: 1, seq: 1 }, { unique: true, partialFilterExpression: { seq: { $type: 'number' } } });
 
 const BLOCKED = [
   'updateOne',

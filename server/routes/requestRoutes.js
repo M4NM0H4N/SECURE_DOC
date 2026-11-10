@@ -16,6 +16,7 @@ router.use(authenticate);
 
 router.post('/', authorize(ROLES.STUDENT), requireVerifiedEmail, createRequestRules, validate, ctrl.create);
 router.get('/', listRequestsRules, validate, ctrl.list);
+router.get('/export.csv', listRequestsRules, validate, ctrl.exportCsv);
 router.get('/:id', requestIdRule, validate, ctrl.getOne);
 
 // Which staff role may act is decided by the request's workflow step (in the service), not by

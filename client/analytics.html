@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Analytics | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/requests.css">
+  <link rel="stylesheet" href="/css/print.css" media="print">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header id="topbar"></header>
+  <main id="main" class="container page stack">
+    <div class="req-head">
+      <h1>Analytics</h1>
+      <a id="back" class="btn btn--ghost btn--sm no-print" href="./">Back</a>
+    </div>
+    <p class="muted">Counts and times only. No names, purposes or documents appear here.</p>
+    <div id="page-alert" class="hidden" role="alert"></div>
+    <div id="content" class="stack hidden">
+      <form id="period" class="form-row form-row--2 no-print" novalidate>
+        <div class="field"><label for="from">From</label><input class="input" id="from" type="date"></div>
+        <div class="field"><label for="to">To</label><input class="input" id="to" type="date"></div>
+        <div class="actions">
+          <button class="btn btn--sm" type="submit">Show</button>
+          <a class="btn btn--ghost btn--sm" id="csv" href="#">Download CSV</a>
+          <button class="btn btn--ghost btn--sm" id="print" type="button">Print report</button>
+        </div>
+      </form>
+      <p id="period-text" class="hint"></p>
+      <section class="card stack" id="cards"></section>
+      <section class="card stack"><h2>Waiting right now</h2><div id="backlog" class="stack"></div></section>
+      <section class="card stack"><h2>By month</h2><div id="months" class="stack"></div></section>
+      <section class="card stack"><h2>By department</h2><div id="depts" class="stack"></div></section>
+      <section class="card stack"><h2>By document type</h2><div id="types" class="stack"></div></section>
+      <section class="card stack"><h2>By status</h2><div id="statuses" class="stack"></div></section>
+    </div>
+  </main>
+  <script type="module" src="/js/analytics.js"></script>
+</body>
+</html>

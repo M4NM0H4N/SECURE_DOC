@@ -31,13 +31,13 @@ function touchesTenantId(update) {
   return Object.values(update).some((v) => v && typeof v === 'object' && !Array.isArray(v) && 'tenantId' in v);
 }
 
-function tenantScope(schema, { required = true } = {}) {
+function tenantScope(schema, { required = true, index = true } = {}) {
   schema.add({
     tenantId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Tenant',
       default: null,
-      index: true,
+      index,
       required,
     },
   });

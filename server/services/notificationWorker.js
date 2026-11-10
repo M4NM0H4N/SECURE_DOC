@@ -8,6 +8,7 @@ const { NOTIFY } = require('../config/constants');
 const { runAsTenant, runUnscoped } = require('../utils/tenantContext');
 const mailer = require('./mailer');
 const slaService = require('./slaService');
+const webhookService = require('./webhookService');
 
 const backoff = (attempts) => NOTIFY.BACKOFF_MS[Math.min(attempts, NOTIFY.BACKOFF_MS.length) - 1];
 
@@ -71,6 +72,7 @@ async function runOnce({ now = new Date(), limit = NOTIFY.BATCH } = {}) {
   const sla = await slaService.scan({ now });
   report.reminders = sla.reminders;
   report.escalations = sla.escalations;
+  report.webhooks = await webhookService.deliverDue({ now });
   return report;
 }
 

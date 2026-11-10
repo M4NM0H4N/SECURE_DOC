@@ -17,9 +17,9 @@ Owner's full plan (9 Nov 2026) turns the finished MVP (tag `mvp-v1.0`, 238 tests
 | S2 Configurable institution (approved) | Department and DocumentType CRUD (replace enums), workflow engine from WorkflowDefinition, extra steps, NEEDS_INFO | Existing workflow/concurrency/transaction tests pass on the default definition; custom 3-step chain tested |
 | S3 Account lifecycle (approved) | Invites, password change/reset, e-mail verification, lockout, server-side session revocation, optional TOTP | Tests for token reuse/expiry, lockout, revoked sessions, enumeration-safe responses |
 | S4 Storage and trust (approved) | Storage interface (local + S3/R2), tenant-prefixed keys, malware scan, multi-document requests, QR/hash verification | Upload/download/revoke/verify pass on both adapters; infected file rejected |
-| S5 Notifications and SLAs (implemented, awaiting gate approval) | Queue or Mongo outbox, e-mail provider, in-app notifications, SLA timers and escalation | Each lifecycle event notifies once; retries survive provider failure; SLA escalation in a mocked-clock test |
-| S6 Plans and billing | Free/Standard/Institution plans, Stripe, limits middleware, read-only suspension | Idempotent webhooks; clear limit errors; suspended tenant cannot write |
-| S7 Polish and integrations | Search/filter/pagination, CSV export, audit screen and hash-chain check, branding, analytics, API keys, webhooks, OpenAPI | Contract tests pass; dashboards match seeded data |
+| S5 Notifications and SLAs (approved) | Queue or Mongo outbox, e-mail provider, in-app notifications, SLA timers and escalation | Each lifecycle event notifies once; retries survive provider failure; SLA escalation in a mocked-clock test |
+| S6 Plans and billing (SKIPPED by owner 2026-11-10: no charging needed for now) | Free/Standard/Institution plans, Stripe, limits middleware, read-only suspension | Idempotent webhooks; clear limit errors; suspended tenant cannot write |
+| S7 Polish and integrations (implemented, docs/INTEGRATIONS.md) | Search/filter/pagination, CSV export, audit screen and hash-chain check, branding, analytics, API keys, webhooks, OpenAPI | Contract tests pass; dashboards match seeded data |
 | S8 Hardening and launch | Staging + production, CI/CD, backups and restore drill, logging, E2E, accessibility, load and security review, legal pages | Demo on production URLs; restore drill succeeds; no open critical findings |
 
 ## Decisions needed before S1 (owner)
@@ -27,7 +27,7 @@ Owner's full plan (9 Nov 2026) turns the finished MVP (tag `mvp-v1.0`, 238 tests
 |---|---|---|
 | Tenant identification | Subdomain or path slug | Subdomain; path slug first if wildcard DNS is a hurdle |
 | Job queue | BullMQ + Redis, or Mongo outbox | Mongo outbox until volume justifies Redis |
-| Frontend | Keep vanilla JS or React | Keep until S7, then decide |
+| Frontend | Keep vanilla JS or React | Keep vanilla JS (ADR 0004) |
 | File storage | S3 or Cloudflare R2 | R2; adapter keeps it swappable |
 
 Owner decisions (2026-11-09): path slug first, Mongo outbox, Cloudflare R2, vanilla JS until S7. Recorded as accepted in `docs/adr/`.

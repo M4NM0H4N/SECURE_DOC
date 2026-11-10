@@ -117,6 +117,11 @@ async function migrate({ slug = 'default', name = 'Default Institution', apply =
     if (outcome === 'missing') report.legacyDocumentsMissing += 1;
   }
   await Document.createIndexes();
+  // S7: give every pre-existing audit entry a place in its institution's hash chain.
+  report.auditChained = 0;
+  for (const t of await runUnscoped(() => Tenant.find({}))) {
+    report.auditChained += await runAsTenant(t._id, () => require('../server/services/auditService').backfillChain());
+  }
   await Promise.all([
     require('../server/models/Department').createIndexes(),
     require('../server/models/DocumentType').createIndexes(),

@@ -1,4 +1,4 @@
-import { api, el } from './api.js';
+import { api, el, apiUrl } from './api.js';
 import { requireUser, showAlert, hideAlert } from './layout.js';
 import { formatDate } from './format.js';
 
@@ -27,12 +27,36 @@ function init() {
   const tbody = document.getElementById('user-rows');
   const state = document.getElementById('table-state');
 
+  // Search, role and status filters, and a spreadsheet export of the filtered list.
+  const uq = el('input', { class: 'input', type: 'search', maxlength: '80', placeholder: 'Search name or e-mail', 'aria-label': 'Search users' });
+  const urole = el('select', { class: 'select', 'aria-label': 'Filter by role' }, el('option', { value: '', text: 'All roles' }), ...['STUDENT', 'CLERK', 'HOD', 'PRINCIPAL', 'ADMIN'].map((r) => el('option', { value: r, text: r })));
+  const uactive = el('select', { class: 'select', 'aria-label': 'Filter by status' }, el('option', { value: '', text: 'Any status' }), el('option', { value: 'true', text: 'Active' }), el('option', { value: 'false', text: 'Inactive' }));
+  const ucsv = el('a', { class: 'btn btn--ghost btn--sm', href: '#', text: 'Download CSV' });
+  state.before(el('div', { class: 'form-row form-row--2' }, el('div', { class: 'field' }, uq), el('div', { class: 'field' }, urole), el('div', { class: 'field' }, uactive)), el('div', { class: 'actions' }, ucsv));
+  function userParams() {
+    const p = new URLSearchParams();
+    if (uq.value.trim()) p.set('q', uq.value.trim());
+    if (urole.value) p.set('role', urole.value);
+    if (uactive.value) p.set('active', uactive.value);
+    ucsv.href = apiUrl(`/admin/users/export.csv?${p}`);
+    return p;
+  }
+  let utimer;
+  uq.addEventListener('input', () => {
+    clearTimeout(utimer);
+    utimer = setTimeout(() => load(), 300);
+  });
+  urole.addEventListener('change', () => load());
+  uactive.addEventListener('change', () => load());
+
   async function load() {
     tbody.replaceChildren();
     state.className = 'state';
     state.replaceChildren(el('div', { class: 'spinner' }), el('span', { text: 'Loading users...' }));
     try {
-      const { items } = await api('/admin/users?limit=100');
+      const qs = userParams();
+      qs.set('limit', '100');
+      const { items } = await api(`/admin/users?${qs}`);
       state.replaceChildren();
       if (!items.length) {
         state.textContent = 'No users yet.';

@@ -2,6 +2,7 @@
 
 const { body, param, query } = require('express-validator');
 const { REQUEST_STATUSES } = require('../config/constants');
+const { commonRules } = require('../utils/listQuery');
 
 const createRequestRules = [
   body('documentType')
@@ -20,8 +21,9 @@ const listRequestsRules = [
   query('status').optional()
     .isString().bail()
     .isIn(Object.values(REQUEST_STATUSES)).withMessage('Invalid status'),
-  query('page').optional().isInt({ min: 1, max: 10000 }).withMessage('Invalid page').toInt(),
-  query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Invalid limit').toInt(),
+  query('department').optional().isString().bail().trim().toUpperCase().matches(/^[A-Z0-9]{2,10}$/).withMessage('Invalid department'),
+  query('documentType').optional().isString().bail().trim().isLength({ min: 1, max: 80 }).withMessage('Invalid document type'),
+  ...commonRules({ sorts: ['createdAt', 'updatedAt', 'status', 'documentType'] }),
 ];
 
 module.exports = { createRequestRules, requestIdRule, listRequestsRules };

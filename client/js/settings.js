@@ -210,5 +210,52 @@ function init() {
     }
   });
 
-  Promise.all([loadWorkflow(), loadDepartments(), loadTypes()]).catch(fail);
+  // ---- branding
+  const colorInput = document.getElementById('brand-color');
+  const taglineInput = document.getElementById('brand-tagline');
+  const logoState = document.getElementById('logo-state');
+  async function loadBranding() {
+    // The public branding response may be cached for a minute; the Admin must see their own change at once.
+    const b = await api(`/branding?_=${Date.now()}`).catch(() => null);
+    if (!b) return;
+    colorInput.value = b.color || '';
+    taglineInput.value = b.tagline || '';
+    logoState.textContent = b.hasLogo ? 'A logo is set.' : 'No logo yet (PNG or JPEG, 100 KB at most).';
+  }
+  document.getElementById('brand-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideAlert(alertBox);
+    try {
+      await api('/admin/branding', { method: 'PUT', body: { color: colorInput.value.trim() || null, tagline: taglineInput.value.trim() || null } });
+      say('Branding saved. Reload a page to see it.', 'success');
+    } catch (err) {
+      fail(err);
+    }
+  });
+  document.getElementById('logo-upload').addEventListener('click', async () => {
+    hideAlert(alertBox);
+    const file = document.getElementById('logo-file').files[0];
+    if (!file) return say('Choose a PNG or JPEG file first.');
+    if (file.size > 100 * 1024) return say('The logo is larger than 100 KB.');
+    try {
+      const data = new FormData();
+      data.append('logo', file);
+      await api('/admin/branding/logo', { method: 'POST', body: data });
+      say('Logo saved.', 'success');
+      await loadBranding();
+    } catch (err) {
+      fail(err);
+    }
+  });
+  document.getElementById('logo-remove').addEventListener('click', async () => {
+    try {
+      await api('/admin/branding/logo', { method: 'DELETE' });
+      say('Logo removed.', 'success');
+      await loadBranding();
+    } catch (err) {
+      fail(err);
+    }
+  });
+
+  Promise.all([loadWorkflow(), loadDepartments(), loadTypes(), loadBranding()]).catch(fail);
 }

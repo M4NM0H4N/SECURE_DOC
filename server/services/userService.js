@@ -1,22 +1,46 @@
 'use strict';
 
 const User = require('../models/User');
+const { contains, sortSpec, dateRange } = require('../utils/listQuery');
+const { MAX_EXPORT_ROWS } = require('../utils/csv');
 const { DEPARTMENT_ROLES } = require('../config/constants');
 const AppError = require('../utils/AppError');
 const { runInTransaction } = require('../config/transactions');
 const audit = require('./auditService');
 
-async function listUsers({ role, page = 1, limit = 50 }) {
+const USER_SORTS = ['createdAt', 'name', 'email', 'role'];
+
+function userFilter({ role, active, department, q, from, to }) {
   const filter = {};
   if (role) filter.role = role;
+  if (active !== undefined) filter.isActive = active;
+  if (department) filter.department = department;
+  Object.assign(filter, dateRange('createdAt', from, to));
+  if (q) {
+    const rx = contains(q);
+    filter.$or = [{ name: rx }, { email: rx }];
+  }
+  return filter;
+}
+
+async function listUsers(params) {
+  const { page = 1, limit = 50, sort, order } = params;
+  const filter = userFilter(params);
   const [items, total] = await Promise.all([
     User.find(filter)
-      .sort({ createdAt: -1 })
+      .sort(sortSpec({ sort, order, defaultSort: 'createdAt' }))
       .skip((page - 1) * limit)
       .limit(limit),
     User.countDocuments(filter),
   ]);
   return { items, total, page, limit };
+}
+
+async function exportUsers(params) {
+  const found = await User.find(userFilter(params)).sort(sortSpec({ sort: params.sort, order: params.order, defaultSort: 'createdAt' })).limit(MAX_EXPORT_ROWS + 1);
+  const header = ['id', 'name', 'email', 'role', 'department', 'active', 'e-mail verified', 'two-step', 'created'];
+  const rows = found.slice(0, MAX_EXPORT_ROWS).map((x) => [String(x._id), x.name, x.email, x.role, x.department || '', x.isActive, Boolean(x.emailVerifiedAt), Boolean(x.mfaEnabled), x.createdAt]);
+  return { header, rows, truncated: found.length > MAX_EXPORT_ROWS };
 }
 
 // Whitelisted fields only (prevents mass assignment). Role is never updatable.
@@ -54,4 +78,4 @@ async function updateUser(actor, id, changes) {
   });
 }
 
-module.exports = { listUsers, updateUser };
+module.exports = { listUsers, exportUsers, updateUser, USER_SORTS };

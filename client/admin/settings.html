@@ -34,6 +34,24 @@
         </div>
       </section>
 
+      <section class="card stack" aria-labelledby="h-brand">
+        <h2 id="h-brand">Branding</h2>
+        <p class="muted">Your colour and logo appear on every page for your institution. The colour must be dark enough to read on white.</p>
+        <form id="brand-form" class="form-row form-row--2" novalidate>
+          <div class="field"><label for="brand-color">Colour (for example #1A56DB)</label><input class="input" id="brand-color" maxlength="7" placeholder="#1A56DB"></div>
+          <div class="field"><label for="brand-tagline">Tagline (optional)</label><input class="input" id="brand-tagline" maxlength="120"></div>
+          <button class="btn btn--sm" type="submit">Save branding</button>
+        </form>
+        <div class="stack">
+          <p class="hint" id="logo-state"></p>
+          <input class="input" id="logo-file" type="file" accept="image/png,image/jpeg" aria-label="Logo (PNG or JPEG, 100 KB at most)">
+          <div class="actions">
+            <button class="btn btn--ghost btn--sm" id="logo-upload" type="button">Upload logo</button>
+            <button class="btn btn--ghost btn--sm" id="logo-remove" type="button">Remove logo</button>
+          </div>
+        </div>
+      </section>
+
       <section class="card stack" aria-labelledby="h-dept">
         <h2 id="h-dept">Departments</h2>
         <p class="muted">The code is permanent. Deactivating a department stops new sign-ups and staff in it; people already there are not affected.</p>

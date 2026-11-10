@@ -13,6 +13,34 @@ const HINTS = {
   PRINCIPAL: 'Institution-wide approvals: you see requests from every department and act on the steps assigned to the Principal.',
 };
 
+
+// Search, sort and CSV export for a list of requests (S7). The server applies the same scope to all
+// three, so these only ever narrow what the person may already see.
+function addListTools(anchor, getBase, reload) {
+  const search = el('input', { class: 'input', type: 'search', maxlength: '80', placeholder: 'Search purpose, type or student', 'aria-label': 'Search requests' });
+  const sort = el('select', { class: 'select', 'aria-label': 'Sort requests' });
+  for (const [v, t] of [['createdAt:desc', 'Newest first'], ['createdAt:asc', 'Oldest first'], ['documentType:asc', 'Document type'], ['status:asc', 'Status']]) sort.append(el('option', { value: v, text: t }));
+  const csv = el('a', { class: 'btn btn--ghost btn--sm', href: '#', text: 'Download CSV' });
+  let timer;
+  search.addEventListener('input', () => {
+    clearTimeout(timer);
+    timer = setTimeout(reload, 300);
+  });
+  sort.addEventListener('change', reload);
+  anchor.before(el('div', { class: 'form-row form-row--2' }, el('div', { class: 'field' }, search), el('div', { class: 'field' }, sort)), el('div', { class: 'actions' }, csv));
+  return {
+    params() {
+      const p = getBase();
+      if (search.value.trim()) p.set('q', search.value.trim());
+      const [field, order] = sort.value.split(':');
+      p.set('sort', field);
+      p.set('order', order);
+      csv.href = apiUrl(`/requests/export.csv?${p}`);
+      return p;
+    },
+  };
+}
+
 const user = await requireUser([ROLE]);
 if (user) init();
 
@@ -20,6 +48,9 @@ function init() {
   document.getElementById('content').classList.remove('hidden');
   document.getElementById('welcome').textContent = `${TITLES[ROLE]} dashboard${user.department ? ` · ${user.department}` : ''}`;
   document.getElementById('hint').textContent = HINTS[ROLE];
+  if (ROLE === 'PRINCIPAL') {
+    document.getElementById('hint').after(el('a', { class: 'btn btn--ghost btn--sm', href: tpath('/analytics.html'), text: 'Open analytics' }));
+  }
 
   const filter = document.getElementById('status-filter');
   const list = document.getElementById('request-list');
@@ -32,6 +63,7 @@ function init() {
   filter.addEventListener('change', () => load());
 
   let page = 1;
+  const tools = addListTools(state, () => new URLSearchParams(filter.value ? { status: filter.value } : {}), () => load());
   const more = el('button', { class: 'btn btn--ghost hidden', type: 'button', text: 'Load more' });
   list.after(more);
   more.addEventListener('click', () => load({ append: true }));
@@ -48,8 +80,9 @@ function init() {
       state.replaceChildren(el('div', { class: 'spinner' }), el('span', { text: 'Loading requests...' }));
     }
     try {
-      const qs = new URLSearchParams({ limit: '20', page: String(page) });
-      if (filter.value) qs.set('status', filter.value);
+      const qs = tools.params();
+      qs.set('limit', '20');
+      qs.set('page', String(page));
       const { items, total } = await api(`/requests?${qs}`);
       if (!append && !items.length) {
         state.replaceChildren(el('span', { text: 'No requests match this filter.' }));

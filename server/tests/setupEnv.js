@@ -17,3 +17,5 @@ process.env.SCAN_MODE = 'off';
 process.env.STORAGE_DRIVER = 'local';
 // S5: mail goes to the in-memory outbox in tests unless a test chooses another provider.
 process.env.MAIL_PROVIDER = 'outbox';
+// S7: throwaway key so webhook secrets can be encrypted in tests.
+process.env.WEBHOOK_ENCRYPTION_KEY = 'test-webhook-key-test-webhook-key-1234';

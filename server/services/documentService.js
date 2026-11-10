@@ -14,6 +14,10 @@ const { StorageError } = require('../storage/errors');
 const scanner = require('./scanner');
 const verification = require('./verificationService');
 const audit = require('./auditService');
+const webhooks = require('./webhookService');
+
+const documentIssued = (request, doc, session) =>
+  webhooks.emit('document.issued', { requestId: String(request._id || request), documentId: String(doc._id), version: doc.version, fileType: doc.fileType }, { session, key: `doc:${doc._id}` });
 const AppError = require('../utils/AppError');
 const config = require('../config/env');
 
@@ -126,6 +130,7 @@ async function uploadFulfilment(actor, requestId, file) {
           [{ requestId: updated._id, key: stored.key, fileType: ext, sizeBytes: stored.sizeBytes, sha256: stored.sha256, uploadedBy: actor._id }],
           opt(session)
         );
+        await documentIssued(updated, document, session);
       },
     });
     return { request, document };
@@ -155,6 +160,7 @@ async function addDocument(actor, requestId, file) {
         { actorId: actor._id, action: 'DOCUMENT_ADDED', requestId: existing._id, details: { documentId: String(document._id), fileType: ext, sizeBytes: file.size } },
         { session }
       );
+      await documentIssued(existing, document, session);
       return document;
     });
   } catch (err) {
@@ -189,6 +195,7 @@ async function replaceDocument(actor, requestId, documentId, file) {
         { actorId: actor._id, action: 'DOCUMENT_REPLACED', requestId: existing._id, details: { documentId: String(document._id), replaces: String(old._id), version: document.version } },
         { session }
       );
+      await documentIssued(existing, document, session);
       return document;
     });
   } catch (err) {

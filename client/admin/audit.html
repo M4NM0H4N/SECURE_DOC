@@ -21,18 +21,28 @@
       <h1>Audit log</h1>
       <a class="btn btn--ghost btn--sm" href="./">Back to users</a>
     </div>
-    <p class="muted">Application-level append-only record of important actions. Read-only.</p>
+    <p class="muted">Append-only record of important actions, linked by hashes so that changes are detectable. Tamper-evident, not tamper-proof. Read-only.</p>
     <div id="content" class="stack hidden">
-      <div class="field filter">
-        <label for="action-filter">Event</label>
-        <select class="select" id="action-filter"></select>
+      <div class="form-row form-row--2">
+        <div class="field filter"><label for="action-filter">Event</label><select class="select" id="action-filter"></select></div>
+        <div class="field"><label for="q">Search event name</label><input class="input" id="q" maxlength="80" placeholder="for example login"></div>
       </div>
+      <div class="form-row form-row--2">
+        <div class="field"><label for="from">From</label><input class="input" id="from" type="date"></div>
+        <div class="field"><label for="to">To</label><input class="input" id="to" type="date"></div>
+      </div>
+      <div class="actions">
+        <label class="row"><input type="checkbox" id="oldest"> <span>Oldest first</span></label>
+        <a class="btn btn--ghost btn--sm" id="export" href="#">Download CSV</a>
+        <button class="btn btn--sm" id="verify" type="button">Verify integrity</button>
+      </div>
+      <div id="verify-result" class="hidden" role="status"></div>
       <section class="card stack">
         <div id="table-state" class="state"></div>
         <div class="table-wrap">
           <table class="table">
             <caption class="sr-only">Audit events, newest first</caption>
-            <thead><tr><th>Time</th><th>Event</th><th>Actor</th><th>Request</th><th>Details</th></tr></thead>
+            <thead><tr><th>Time</th><th>Event</th><th>Actor</th><th>#</th><th>Request</th><th>Details</th></tr></thead>
             <tbody id="log-rows"></tbody>
           </table>
         </div>

@@ -1,6 +1,9 @@
 'use strict';
 
 const Request = require('../models/Request');
+const User = require('../models/User');
+const { contains, sortSpec, dateRange } = require('../utils/listQuery');
+const { MAX_EXPORT_ROWS } = require('../utils/csv');
 const Document = require('../models/Document');
 const { ROLES, REQUEST_STATUSES } = require('../config/constants');
 const AppError = require('../utils/AppError');
@@ -10,6 +13,7 @@ const configService = require('./configService');
 const workflowService = require('./workflowService');
 const { buildRules, availableActions, currentStepLabel, slaTimers } = require('./workflowEngine');
 const notifications = require('./notificationService');
+const webhooks = require('./webhookService');
 
 // Single source of truth for "which requests may this user see" (always inside the user's
 // institution, which the tenant plugin adds to every query).
@@ -60,6 +64,11 @@ async function createRequest(student, { documentType, purpose }) {
       { session }
     );
     await notifications.onSubmitted({ request, definition, session });
+    await webhooks.emit(
+      'request.submitted',
+      { requestId: String(request._id), documentType: request.documentType, department: request.department, status: request.status },
+      { session, key: `submitted:${request._id}` }
+    );
     return request;
   });
 }
@@ -85,18 +94,64 @@ async function decorate(user, requests) {
   });
 }
 
-async function listRequests(user, { status, page = 1, limit = 20 }) {
+const SORTABLE = ['createdAt', 'updatedAt', 'status', 'documentType'];
+
+// The filter for a list: the user's scope ALWAYS applies, and every extra filter only narrows it
+// (a Clerk asking for another department gets nothing, never that department's requests).
+// Returns null when the combination can match nothing.
+async function listFilter(user, { status, department, documentType, q, from, to }) {
   const filter = scopeFilter(user);
   if (status) filter.status = status;
+  if (department) {
+    if (filter.department && filter.department !== department) return null;
+    filter.department = department;
+  }
+  if (documentType) filter.documentType = documentType;
+  Object.assign(filter, dateRange('createdAt', from, to));
+  if (q) {
+    const rx = contains(q);
+    const or = [{ purpose: rx }, { documentType: rx }];
+    // Staff can also search by the student's name or e-mail (students only ever see their own).
+    if (user.role !== ROLES.STUDENT) {
+      const students = await User.find({ role: ROLES.STUDENT, $or: [{ name: rx }, { email: rx }] }, '_id').limit(200);
+      if (students.length) or.push({ studentId: { $in: students.map((s) => s._id) } });
+    }
+    filter.$or = or;
+  }
+  return filter;
+}
+
+async function listRequests(user, params) {
+  const { page = 1, limit = 20, sort, order } = params;
+  const filter = await listFilter(user, params);
+  if (!filter) return { items: [], total: 0, page, limit };
   const [found, total] = await Promise.all([
     Request.find(filter)
-      .sort({ createdAt: -1 })
+      .sort(sortSpec({ sort, order, defaultSort: 'createdAt' }))
       .skip((page - 1) * limit)
       .limit(limit)
       .populate('studentId', 'name email department'),
     Request.countDocuments(filter),
   ]);
   return { items: await decorate(user, found), total, page, limit };
+}
+
+// Everything the same filters match, for a spreadsheet (capped). Students get no names column.
+async function exportRequests(user, params) {
+  const filter = await listFilter(user, params);
+  if (!filter) return { rows: [], truncated: false, header: [] };
+  const found = await Request.find(filter)
+    .sort(sortSpec({ sort: params.sort, order: params.order, defaultSort: 'createdAt' }))
+    .limit(MAX_EXPORT_ROWS + 1)
+    .populate('studentId', 'name');
+  const truncated = found.length > MAX_EXPORT_ROWS;
+  const staff = user.role !== ROLES.STUDENT;
+  const header = ['id', 'submitted', 'updated', 'document type', 'department', 'status', ...(staff ? ['student'] : [])];
+  const rows = found.slice(0, MAX_EXPORT_ROWS).map((x) => [
+    String(x._id), x.createdAt, x.updatedAt, x.documentType, x.department, x.status,
+    ...(staff ? [x.studentId && x.studentId.name ? x.studentId.name : ''] : []),
+  ]);
+  return { header, rows, truncated };
 }
 
 // Out-of-scope and non-existent requests both return 404 so existence is not leaked.
@@ -109,4 +164,4 @@ async function getRequestForUser(user, id) {
   return decorated;
 }
 
-module.exports = { scopeFilter, createRequest, listRequests, getRequestForUser };
+module.exports = { scopeFilter, createRequest, listRequests, exportRequests, getRequestForUser, SORTABLE };

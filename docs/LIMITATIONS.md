@@ -58,3 +58,9 @@ An honest list of what the MVP does not do, and what could come next.
 - Malware scanning and encryption at rest for stored files; cleanup job for orphan files
 - Automated browser tests (Playwright), accessibility audit, load tests
 - Multi-institution support; per-department configuration instead of a fixed list
+
+## After S7
+- The audit hash chain is tamper-evident, not tamper-proof (see docs/INTEGRATIONS.md).
+- API keys are read-only; there is no write API or third-party OAuth.
+- Webhooks and the API are tested against local fakes, not an external consumer.
+- Plans, billing and Stripe (S6) were skipped by the owner: every institution has unlimited use.

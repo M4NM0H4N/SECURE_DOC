@@ -17,8 +17,8 @@ npm audit --omit=dev          # production dependency check
 
 | Check | Result |
 |---|---|
-| Test suites | 10 passed, 0 failed |
-| Tests | **487 passed, 0 failed** in 20 suites (requirement: at least 30). 238 are the MVP tests, adapted (tenant paths, configurable workflow, invitations, document store, mail config); 249 are new (tenancy 31, migration 5, configurable institution 26, accounts 40, 1 for the retired staff route, storage 32, trust 36, storage jobs 14, mail 28, notifications 20, SLA 16) |
+| Test suites | 25 passed, 0 failed |
+| Tests | **589 passed, 0 failed** in 25 suites (requirement: at least 30). 238 are the MVP tests, adapted (tenant paths, configurable workflow, invitations, document store, mail config); 352 are new (S7: listing 14, audit chain 17, insights 13, integrations 49, contract 9; earlier: tenancy 31, migration 5, configurable institution 26, accounts 40, 1 for the retired staff route, storage 32, trust 36, storage jobs 14, mail 28, notifications 20, SLA 16) |
 | ESLint (`server`, `scripts`) | 0 errors, 0 warnings |
 | `npm audit --omit=dev` | 0 vulnerabilities |
 

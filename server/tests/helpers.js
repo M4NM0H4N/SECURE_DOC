@@ -13,6 +13,7 @@ const Department = require('../models/Department');
 const DocumentType = require('../models/DocumentType');
 const WorkflowDefinition = require('../models/WorkflowDefinition');
 const Document = require('../models/Document');
+const AuditChain = require('../models/AuditChain');
 const { seedDefaults } = require('../services/institutionService');
 const { runAsTenant, runUnscoped, setTestFallback } = require('../utils/tenantContext');
 const Request = require('../models/Request');
@@ -37,6 +38,7 @@ async function startDb() {
   await DocumentType.init();
   await WorkflowDefinition.init();
   await Document.init();
+  await AuditChain.init();
   await User.init();
   await Request.init();
   await AuditLog.init();
@@ -82,6 +84,7 @@ async function stopDb() {
 async function clearDb() {
   // Native calls: the model blocks audit deletes on purpose, and this clears every tenant.
   await AuditLog.collection.deleteMany({});
+  await AuditChain.collection.deleteMany({});
   await Request.collection.deleteMany({});
   await Document.collection.deleteMany({});
   await User.collection.deleteMany({});
