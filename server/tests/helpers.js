@@ -12,6 +12,7 @@ const Tenant = require('../models/Tenant');
 const Department = require('../models/Department');
 const DocumentType = require('../models/DocumentType');
 const WorkflowDefinition = require('../models/WorkflowDefinition');
+const Document = require('../models/Document');
 const { seedDefaults } = require('../services/institutionService');
 const { runAsTenant, runUnscoped, setTestFallback } = require('../utils/tenantContext');
 const Request = require('../models/Request');
@@ -35,6 +36,7 @@ async function startDb() {
   await Department.init();
   await DocumentType.init();
   await WorkflowDefinition.init();
+  await Document.init();
   await User.init();
   await Request.init();
   await AuditLog.init();
@@ -81,6 +83,7 @@ async function clearDb() {
   // Native calls: the model blocks audit deletes on purpose, and this clears every tenant.
   await AuditLog.collection.deleteMany({});
   await Request.collection.deleteMany({});
+  await Document.collection.deleteMany({});
   await User.collection.deleteMany({});
   for (const M of [Department, DocumentType, WorkflowDefinition]) await M.collection.deleteMany({ tenantId: { $ne: defaultTenant._id } });
   await Tenant.collection.deleteMany({ slug: { $ne: DEFAULT_SLUG } });

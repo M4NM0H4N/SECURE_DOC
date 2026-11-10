@@ -6,5 +6,6 @@
   - Introduce a storage interface with a local adapter (development and tests) and an S3-compatible adapter (Cloudflare R2 chosen for lower egress cost; AWS S3 also works).
   - Private bucket, keys prefixed by tenant, downloads streamed through the API after authorisation or via short-lived signed URLs.
   - Keep the magic-byte check and add malware scanning (ClamAV) before a file is accepted.
+- **Implemented in S4** (see docs/TRUST.md): hand-written SigV4 instead of the AWS SDK (no dependency; checked against AWS's published examples).
 - **Until S4:** deployments must not rely on the local disk for anything that has to survive a redeploy (see `docs/DEPLOYMENT.md`).
 - **Consequences:** Orphan-file cleanup job; adapter tests run against both adapters.

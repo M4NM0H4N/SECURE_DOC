@@ -11,6 +11,7 @@
     "dev": "nodemon server/server.js",
     "seed:superadmin": "node scripts/seedSuperAdmin.js",
     "migrate:tenants": "node scripts/migrateToTenants.js",
+    "storage:cleanup": "node scripts/storageCleanup.js",
     "seed:demo": "node scripts/seedDemo.js",
     "seed:demo:clean": "node scripts/seedDemo.js --clean",
     "lint": "eslint server scripts",

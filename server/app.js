@@ -16,6 +16,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const requestRoutes = require('./routes/requestRoutes');
 const platformRoutes = require('./routes/platformRoutes');
 const metaRoutes = require('./routes/metaRoutes');
+const verifyRoutes = require('./routes/verifyRoutes');
 const resolveTenant = require('./middleware/resolveTenant');
 const { SLUG_PATTERN } = require('./models/Tenant');
 
@@ -98,7 +99,13 @@ function createApp({
   const tenantApi = express.Router({ mergeParams: true });
   tenantApi.use(resolveTenant);
   // Uploads are the most expensive endpoint, so they get their own stricter limit.
-  tenantApi.post('/requests/:id/document', makeLimiter(uploadRateLimitMax, 'Too many uploads. Please try again later.'));
+  tenantApi.post(
+    ['/requests/:id/document', '/requests/:id/documents', '/requests/:id/documents/:docId/replace'],
+    makeLimiter(uploadRateLimitMax, 'Too many uploads. Please try again later.')
+  );
+  // Public document verification: no sign-in, so it gets its own limiter.
+  tenantApi.use('/verify', makeLimiter(60, 'Too many verification attempts. Please try again later.'));
+  tenantApi.use('/verify', verifyRoutes);
   tenantApi.use('/auth/login', authLimiter(true));
   tenantApi.use('/auth/register', authLimiter(false));
   // Token endpoints get the same throttle (tokens are 256-bit, but there is no reason to allow guessing).

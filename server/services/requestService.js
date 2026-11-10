@@ -1,6 +1,7 @@
 'use strict';
 
 const Request = require('../models/Request');
+const Document = require('../models/Document');
 const { ROLES, REQUEST_STATUSES } = require('../config/constants');
 const AppError = require('../utils/AppError');
 const { runInTransaction } = require('../config/transactions');
@@ -64,8 +65,16 @@ async function createRequest(student, { documentType, purpose }) {
 // which approval step the request is waiting on. Plain objects, same shape as before plus two fields.
 async function decorate(user, requests) {
   const defs = await workflowService.getMap(requests.map((r) => r.workflowDefinitionId));
+  // How many active documents each request has (one tenant-scoped query), so the UI can show downloads.
+  const counts = new Map(
+    (requests.length
+      ? await Document.aggregate([{ $match: { requestId: { $in: requests.map((r) => r._id) }, status: 'ACTIVE' } }, { $group: { _id: '$requestId', n: { $sum: 1 } } }])
+      : []
+    ).map((c) => [String(c._id), c.n])
+  );
   return requests.map((r) => {
     const obj = r.toJSON();
+    obj.documentCount = counts.get(String(r._id)) || 0;
     const def = defs.get(String(r.workflowDefinitionId));
     obj.actions = def ? availableActions(user, r, buildRules(def)) : [];
     obj.currentStep = def ? currentStepLabel(def, r) : null;

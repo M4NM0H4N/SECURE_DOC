@@ -6,6 +6,7 @@ const path = require('path');
 const crypto = require('crypto');
 const { startDb, stopDb, clearDb, makeApp, CSRF, createUser, createRequest, loginAgent, request } = require('./helpers');
 const Request = require('../models/Request');
+const Document = require('../models/Document');
 const AuditLog = require('../models/AuditLog');
 const User = require('../models/User');
 const auditService = require('../services/auditService');
@@ -18,7 +19,21 @@ const TXT = Buffer.from('This is just text pretending to be a PDF document.');
 const EXE = Buffer.concat([Buffer.from('MZ'), Buffer.alloc(200, 1)]);
 
 const uploadDir = () => process.env.UPLOAD_DIR;
-const storedFiles = () => (fs.existsSync(uploadDir()) ? fs.readdirSync(uploadDir()) : []);
+// Every stored file, as keys relative to the upload folder (<tenant>/<request>/<uuid>.<ext>).
+const storedFiles = () => {
+  const out = [];
+  const walk = (dir) => {
+    if (!fs.existsSync(dir)) return;
+    for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, e.name);
+      if (e.isDirectory()) walk(full);
+      else out.push(path.relative(uploadDir(), full).split(path.sep).join('/'));
+    }
+  };
+  walk(uploadDir());
+  return out;
+};
+const docKey = async (requestId) => (await Document.findOne({ requestId }).select('+key')).key;
 
 let app;
 beforeAll(async () => {
@@ -72,11 +87,16 @@ describe('POST /api/requests/:id/document (upload and fulfil)', () => {
     expect(res.body.data.request.status).toBe('FULFILLED');
     expect(JSON.stringify(res.body)).not.toMatch(/documentPath|\.pdf"|\.png"|\.jpg"/);
 
-    const stored = await Request.findById(r._id).select('+documentPath');
-    expect(stored.documentPath).toMatch(new RegExp(`^[0-9a-f-]{36}\\.${ext}$`));
-    expect(stored.documentPath).not.toContain(name.split('.')[0]);
-    expect(storedFiles()).toEqual([stored.documentPath]);
-    expect(fs.readFileSync(path.join(uploadDir(), stored.documentPath)).equals(buf)).toBe(true);
+    const stored = await Request.findById(r._id);
+    const key = await docKey(r._id);
+    expect(key).toMatch(new RegExp(`^${String(stored.tenantId)}/${String(r._id)}/[0-9a-f-]{36}\\.${ext}$`)); // tenant-prefixed random name
+    expect(key).not.toContain(name.split('.')[0]);
+    expect(storedFiles()).toEqual([key]);
+    expect(fs.readFileSync(path.join(uploadDir(), key)).equals(buf)).toBe(true);
+    const doc = await Document.findOne({ requestId: r._id }).select('+sha256');
+    expect(doc).toMatchObject({ status: 'ACTIVE', version: 1, fileType: ext, sizeBytes: buf.length });
+    expect(doc.sha256).toBe(crypto.createHash('sha256').update(buf).digest('hex'));
+    expect(JSON.stringify(res.body)).not.toMatch(/sha256|"key"/); // neither the key nor the hash is ever sent
     expect(stored.statusHistory.map((h) => h.to)).toEqual(['PENDING', 'FULFILLED']);
   });
 
@@ -179,9 +199,10 @@ describe('POST /api/requests/:id/document (upload and fulfil)', () => {
     const clerk2Agent = await loginAgent(app, clerk2);
     const results = await Promise.all([upload(clerkAgent, r._id, PDF, 'one.pdf'), upload(clerk2Agent, r._id, PNG, 'two.png')]);
     expect(results.map((x) => x.status).sort()).toEqual([200, 409]);
-    const stored = await Request.findById(r._id).select('+documentPath');
+    const stored = await Request.findById(r._id);
     expect(stored.status).toBe('FULFILLED');
-    expect(storedFiles()).toEqual([stored.documentPath]);
+    expect(await Document.countDocuments({ requestId: r._id })).toBe(1);
+    expect(storedFiles()).toEqual([await docKey(r._id)]);
   });
 
   test('FAILURE HANDLING: if the DB/audit step fails, request is NOT fulfilled and the file is removed', async () => {
@@ -189,9 +210,8 @@ describe('POST /api/requests/:id/document (upload and fulfil)', () => {
     jest.spyOn(auditService, 'record').mockRejectedValueOnce(new Error('simulated audit failure'));
     const res = await upload(clerkAgent, r._id, PDF);
     expect(res.status).toBe(500);
-    const stored = await Request.findById(r._id).select('+documentPath');
-    expect(stored.status).toBe('APPROVED');
-    expect(stored.documentPath).toBeNull();
+    expect((await Request.findById(r._id)).status).toBe('APPROVED');
+    expect(await Document.countDocuments({ requestId: r._id })).toBe(0); // the record rolled back too
     expect(storedFiles()).toHaveLength(0);
   });
 });
@@ -268,7 +288,7 @@ describe('GET /api/requests/:id/document (download)', () => {
   test('SECURITY: a tampered path in the database is never followed (no traversal)', async () => {
     const { r, studentAgent } = await fulfilled();
     for (const bad of ['../../.env', '..\\..\\.env', '/etc/passwd', 'C:\\Windows\\win.ini', 'abc.pdf']) {
-      await Request.collection.updateOne({ _id: r._id }, { $set: { documentPath: bad } });
+      await Document.collection.updateOne({ requestId: r._id }, { $set: { key: bad } });
       const res = await studentAgent.get(`/api/requests/${r._id}/document`);
       expect(res.status).toBe(500);
       expect(res.text).not.toMatch(/root:|\[fonts\]|JWT_SECRET/);
@@ -291,7 +311,7 @@ describe('storage naming', () => {
     for (let i = 0; i < 3; i += 1) {
       const { r, clerkAgent } = await setup();
       await upload(clerkAgent, r._id, PDF);
-      names.add((await Request.findById(r._id).select('+documentPath')).documentPath);
+      names.add(await docKey(r._id));
     }
     expect(names.size).toBe(3);
     expect(crypto.randomUUID()).toBeDefined();

@@ -89,6 +89,10 @@ const AUDIT_ACTIONS = Object.freeze([
   'SESSIONS_REVOKED',
   'MFA_ENABLED',
   'MFA_DISABLED',
+  'DOCUMENT_ADDED',
+  'DOCUMENT_REPLACED',
+  'DOCUMENT_REVOKED',
+  'DOCUMENT_REJECTED_INFECTED',
 ]);
 
 // Account-security tuning (S3).

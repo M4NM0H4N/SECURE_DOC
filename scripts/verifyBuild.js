@@ -40,6 +40,14 @@ const required = [
   'client/accept-invite.html',
   'client/verify-email.html',
   'server/utils/totp.js',
+  'server/storage/index.js',
+  'server/storage/s3Adapter.js',
+  'server/storage/sigv4.js',
+  'scripts/storageCleanup.js',
+  'client/verify.html',
+  'client/js/verify.js',
+  'client/js/qr.js',
+  'client/js/vendor/qrcode.js',
   '.env.example',
 ];
 
@@ -72,6 +80,7 @@ function get(port, urlPath) {
     const checks = [
       ['/login.html', 200],
       ['/t/demo-college/login.html', 200], // the client is served under an institution address
+      ['/t/demo-college/verify.html', 200], // the public verification page
       ['/api/platform/tenants', 401], // platform routes reject anonymous callers
       ['/api/auth/me', 404], // the old un-prefixed API no longer exists
       ['/definitely-not-a-page', 404],
@@ -85,6 +94,6 @@ function get(port, urlPath) {
   } finally {
     server.close();
   }
-  console.log(`Build verification passed (${required.length} files, 7 HTTP checks).`);
+  console.log(`Build verification passed (${required.length} files, 8 HTTP checks).`);
   process.exit(0);
 })().catch((err) => fail(err.message));

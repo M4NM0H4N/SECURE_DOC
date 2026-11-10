@@ -35,10 +35,12 @@ const AUDIT_BY_TARGET = Object.freeze({
  *
  * Options:
  *   reason      rejection reason (REJECTED) or the question for the student (NEEDS_INFO)
- *   extraSet    extra fields to set atomically (e.g. documentPath for FULFILLED)
+ *   extraSet    extra fields to set atomically
  *   extraAudit  additional audit events [{ action, details }]
+ *   afterUpdate async (updatedRequest, session) => void, run INSIDE the same transaction after the
+ *               status change (S4: creates the Document record, so file record and status commit together)
  */
-async function transition(actor, requestId, to, { reason, extraSet = {}, extraAudit = [] } = {}) {
+async function transition(actor, requestId, to, { reason, extraSet = {}, extraAudit = [], afterUpdate } = {}) {
   const pre = await Request.findOne({ _id: requestId }, 'status currentStepIndex department workflowDefinitionId');
 
   // Role gate. Without a request to read, fall back to the institution's current chain
@@ -92,6 +94,8 @@ async function transition(actor, requestId, to, { reason, extraSet = {}, extraAu
       if (!existing) throw new AppError(404, 'Request not found');
       throw new AppError(409, `Invalid status transition: request is ${existing.status}, expected ${rule.from}`);
     }
+
+    if (afterUpdate) await afterUpdate(updated, session);
 
     for (const ev of extraAudit) {
       await audit.record({ actorId: actor._id, action: ev.action, requestId: updated._id, details: ev.details }, { session });

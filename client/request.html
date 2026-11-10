@@ -21,7 +21,14 @@
     <section id="detail" class="card stack">
       <div class="state"><div class="spinner"></div><span>Loading request...</span></div>
     </section>
+    <section id="documents" class="card stack hidden" aria-labelledby="h-documents">
+      <h2 id="h-documents">Documents</h2>
+      <p class="muted" id="documents-note"></p>
+      <div id="document-list" class="stack"></div>
+      <div id="document-tools" class="stack hidden"></div>
+    </section>
   </main>
+  <script src="/js/vendor/qrcode.js"></script>
   <script type="module" src="/js/request.js"></script>
 </body>
 </html>

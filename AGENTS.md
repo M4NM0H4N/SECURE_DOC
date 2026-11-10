@@ -29,7 +29,7 @@ HTML/CSS/vanilla JS · Node.js + Express · MongoDB + Mongoose · JWT (HttpOnly 
 - `authenticate` re-loads user and checks `isActive` on every request.
 - Status changes only through the atomic transition service; invalid → 409.
 - Rejection requires a reason.
-- Uploads: PDF/JPG/PNG, ≤ 5 MB, magic-byte check, UUID filename, stored outside `client/`, downloads via authenticated endpoint.
+- Uploads: PDF/JPG/PNG, ≤ 5 MB, magic-byte check, malware scan before storing (fails closed in production), random tenant-prefixed key through the storage interface (local or private S3/R2), never inside `client/`, downloads streamed through an authenticated endpoint. No public or presigned URLs. Replaced/revoked documents keep their record.
 - Audit log is application-level append-only; never claim immutability; no update/delete API; no secrets in details.
 - Do not assume transactions on standalone MongoDB; document actual mode.
 - CSRF: custom header required on state-changing requests.

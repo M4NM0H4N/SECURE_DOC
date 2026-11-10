@@ -11,3 +11,7 @@ process.env.UPLOAD_DIR = require('path').join(require('os').tmpdir(), 'sdw-test-
 require('dotenv').config({ quiet: true });
 // S3: a throwaway key so TOTP secrets can be encrypted in tests.
 process.env.MFA_ENCRYPTION_KEY = 'test-mfa-key-test-mfa-key-test-mfa-key-1234';
+// S4: throwaway key for document verification codes; scanning stays off unless a test turns it on.
+process.env.VERIFY_SIGNING_KEY = 'test-verify-key-test-verify-key-test-1234';
+process.env.SCAN_MODE = 'off';
+process.env.STORAGE_DRIVER = 'local';

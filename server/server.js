@@ -3,6 +3,7 @@
 const config = require('./config/env');
 const { connectDb } = require('./config/db');
 const { prepareUploadDir } = require('./config/storage');
+const { getStorage } = require('./storage');
 const createApp = require('./app');
 const { detectMode } = require('./config/transactions');
 
@@ -11,7 +12,11 @@ async function main() {
   const mode = await detectMode();
   console.log(`MongoDB transaction mode: ${mode}` + (mode === 'standalone' ? ' (NOT atomic across documents; see docs/TRANSACTIONS.md)' : ''));
 
-  const storage = prepareUploadDir(config);
+  // Fail at start-up, not on the first upload, if the document store is unusable.
+  const store = getStorage();
+  await store.check();
+  console.log('Document storage: ' + store.name + (store.name === 's3' ? ' (bucket reachable)' : ''));
+  const storage = config.storageDriver === 'local' ? prepareUploadDir(config) : { ephemeralRisk: false };
   if (storage.ephemeralRisk) {
     console.warn(
       'WARNING: UPLOAD_DIR is not set in production. Uploaded documents are stored inside the deployed app ' +

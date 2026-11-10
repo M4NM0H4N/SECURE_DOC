@@ -178,17 +178,38 @@ Body `{ "purpose": "optional, 10-500 characters" }`. Only the owning student, on
 
 For all three: `404` if the request is in another department or does not exist, `409` if the request is not in the required current status. Each is a single atomic conditional update, so concurrent callers get exactly one success.
 
+### Documents (S4)
+A request can hold several documents; see [TRUST.md](TRUST.md) for storage, scanning, retention and verification.
+
+| Route | Who | Notes |
+|---|---|---|
+| `POST /requests/:id/documents` | Clerk, own department | add another document to a `FULFILLED` request; `201` |
+| `GET /requests/:id/documents` | Student (active only), Clerk, HOD | `{ items: [{ _id, version, fileType, sizeBytes, status, createdAt, supersedes, verifyUrl? }] }`; staff also get `revokedAt`, `revokedReason`; never a key or hash; Admin/Principal `403` |
+| `GET /requests/:id/documents/:docId/file` | as above | one active document, streamed |
+| `POST /requests/:id/documents/:docId/replace` | Clerk | new version; old becomes `REPLACED`; `409` if it is not active or someone else changed it |
+| `DELETE /requests/:id/documents/:docId` | Clerk | body `{ reason }` (5-500); `REVOKED` |
+| `GET /verify/:code`, `POST /verify/:code/check` | **public** (under `/api/t/<slug>`) | verification; see below |
+
+An infected file is rejected with `422`; if scanning is required and the scanner is unavailable, `503`; if the document store is unavailable, `502`. Request list items now include `documentCount` (active documents).
+
+### GET /api/t/<slug>/verify/:code (public)
+Returns `{ institution, status: VALID|SUPERSEDED|REVOKED, valid, documentType, issuedAt, version }` and nothing about the holder. Any bad, forged or other-institution code is `404 No document matches this code`; `503` if the installation has no verification key; rate limited (60 per 15 minutes).
+
+### POST /api/t/<slug>/verify/:code/check (public)
+Body `{ sha256 }` (64 hex). Returns `{ institution, matches, status, valid }`. The browser hashes the file locally; the stored hash is never revealed.
+
 ### POST /api/requests/:id/document (Clerk)
 `multipart/form-data` with exactly one file in the field `document`.
 
 - Types: PDF, JPG/JPEG, PNG. The real file signature is checked, and the extension must match the content.
 - Maximum 5 MB (`413` above that).
 - Allowed only while the request is `APPROVED` (`409` otherwise).
-- Success: stored under a random UUID name outside the web root; request becomes `FULFILLED`; `200` with the request.
+- Success: scanned, then stored under a tenant-prefixed random key in the configured store; request becomes `FULFILLED`; `200` with `{ request, document }`.
 - Any failure after the file is written deletes the file and leaves the request `APPROVED`.
+- Only for `APPROVED` requests: further documents use `POST /requests/:id/documents`.
 
 ### GET /api/requests/:id/document (Student, Clerk, HOD)
-Returns the file as an attachment (`Content-Disposition: attachment`, `X-Content-Type-Options: nosniff`, `Cache-Control: private, no-store`). `409` until the request is `FULFILLED`, `404` if out of scope or the file is missing, `403` for Admin.
+Streams the newest active document as an attachment (other documents: `/documents/:docId/file`) (`Content-Disposition: attachment`, `X-Content-Type-Options: nosniff`, `Cache-Control: private, no-store`). `409` until the request is `FULFILLED` or when it has no active document, `404` if out of scope or the file is missing, `403` for Admin and Principal.
 
 ---
 

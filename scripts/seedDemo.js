@@ -8,8 +8,6 @@
 // Safety: refuses to run in production; the password comes from DEMO_PASSWORD
 // (never hardcoded); all demo accounts end in ".demo@example.com".
 require('dotenv').config({ quiet: true });
-const fs = require('fs');
-const path = require('path');
 const mongoose = require('mongoose');
 
 if (process.env.NODE_ENV === 'production') {
@@ -51,10 +49,11 @@ const DEMO_SLUG = 'demo';
 async function clean(tenant) {
   const users = await User.find({ email: DEMO_EMAIL });
   const ids = users.map((u) => u._id);
-  const requests = await Request.find({ studentId: { $in: ids } }).select('+documentPath');
-  for (const r of requests) {
-    if (r.documentPath) fs.rmSync(path.join(config.uploadDir, r.documentPath), { force: true });
-  }
+  const requests = await Request.find({ studentId: { $in: ids } });
+  const Document = require('../server/models/Document');
+  const docs = await Document.find({ requestId: { $in: requests.map((r) => r._id) } }).select('+key');
+  for (const doc of docs) await require('../server/storage').getStorage().delete(doc.key);
+  await Document.deleteMany({ _id: { $in: docs.map((x) => x._id) } });
   // Native call: the AuditLog model deliberately blocks deletes.
   await AuditLog.collection.deleteMany({ tenantId: tenant._id, $or: [{ actorId: { $in: ids } }, { requestId: { $in: requests.map((r) => r._id) } }] });
   await Request.deleteMany({ _id: { $in: requests.map((r) => r._id) } });

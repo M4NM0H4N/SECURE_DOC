@@ -45,7 +45,11 @@ Render injects `PORT` (10000 by default). The app listens on it and binds `0.0.0
 | `PUBLIC_URL` | yes | the https origin of the service (for example `https://docflow.onrender.com`). The app refuses to start without it: it is the base of every invitation and reset link |
 | `MFA_ENCRYPTION_KEY` | optional | 32+ characters; enables two-step sign-in. Never reuse `JWT_SECRET`. Losing it makes enrolled authenticator secrets unreadable |
 | `JWT_SECRET` | yes | a new production-only secret, at least 32 characters. Generate: `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"` |
-| `UPLOAD_DIR` | yes for persistent documents | an absolute path inside the mounted disk, for example `/var/data/uploads` |
+| `STORAGE_DRIVER` | recommended `s3` | with `s3`, documents live in a private bucket (Cloudflare R2) instead of the server disk, so no persistent disk is needed and several instances can run. Also set `S3_ENDPOINT` (https), `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` (a token limited to that one bucket). See [TRUST.md](TRUST.md) |
+| `CLAMD_HOST` (+ `CLAMD_PORT`) | yes, or `SCAN_MODE=off` | a ClamAV daemon on a separate private host. In production the app **refuses to start** without it unless you set `SCAN_MODE=off` on purpose |
+| `VERIFY_SIGNING_KEY` | optional | 32+ characters; enables document verification QR codes |
+| `DOCUMENT_RETENTION_DAYS` | optional | default 30 |
+| `UPLOAD_DIR` | only with `STORAGE_DRIVER=local` (default) | an absolute path inside the mounted disk, for example `/var/data/uploads` |
 | `PORT` | provided by Render | do not set |
 | `TRUST_PROXY` | optional | defaults to `1` in production, which matches Render's single proxy hop. Whole numbers only. |
 | `JWT_EXPIRES_IN`, `COOKIE_NAME`, `MAX_UPLOAD_MB`, `HOST` | optional | defaults are fine |
@@ -55,6 +59,8 @@ New in S3: staff join by invitation (the link is shown once to the Admin), and e
 Do **not** set in production: `MONGODB_URI_TEST`, `MONGODB_ATLAS_URI`, `DEMO_PASSWORD`. Set `SUPER_ADMIN_*` only for the moment you run the seed (section 7), then delete them. Set `SIGNUP_KEY` only while institutions are being created.
 
 Production cookies are `HttpOnly`, `SameSite=Strict` and `Secure`; HSTS and the CSP `upgrade-insecure-requests` directive are enabled only when `NODE_ENV=production`. There is no CORS middleware on purpose: the pages and the API share one origin.
+
+> **S4:** with `STORAGE_DRIVER=s3` the persistent-disk discussion below no longer applies: documents are in R2, and `UPLOAD_DIR` is unused. The rest of this section describes the local driver.
 
 ## 5. File storage (important limitation)
 
@@ -111,7 +117,10 @@ Render configuration:
 
 - [ ] Web Service, build `npm ci`, start `npm start`, health check `/healthz`
 - [ ] Environment variables from section 4
-- [ ] Persistent disk mounted at `/var/data` (if chosen) with `UPLOAD_DIR=/var/data/uploads`
+- [ ] Document storage chosen: either `STORAGE_DRIVER=s3` with the R2 bucket settings (preferred), or a persistent disk at `/var/data` with `UPLOAD_DIR=/var/data/uploads`
+- [ ] ClamAV daemon reachable (`CLAMD_HOST`), or `SCAN_MODE=off` chosen knowingly
+- [ ] First real upload, download, replace and verification link tried against the real bucket (the R2 adapter has only been tested against a fake)
+- [ ] `npm run storage:cleanup` scheduled (dry run first)
 
 After the first deploy:
 

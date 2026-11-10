@@ -8,7 +8,7 @@ const validate = require('../middleware/validate');
 const uploadSingle = require('../middleware/upload');
 const requireVerifiedEmail = require('../middleware/requireVerifiedEmail');
 const { ROLES } = require('../config/constants');
-const { createRequestRules, requestIdRule, listRequestsRules, rejectRules, needsInfoRules, resubmitRules } = require('../validators/requestValidators');
+const { createRequestRules, requestIdRule, listRequestsRules, rejectRules, needsInfoRules, resubmitRules, documentIdRules, revokeDocumentRules } = require('../validators/requestValidators');
 
 const STAFF = [ROLES.CLERK, ROLES.HOD, ROLES.PRINCIPAL];
 
@@ -31,5 +31,12 @@ router.patch('/:id/resubmit', authorize(ROLES.STUDENT), resubmitRules, validate,
 // Auth and role are checked BEFORE the upload body is parsed.
 router.post('/:id/document', authorize(ROLES.CLERK), requestIdRule, validate, uploadSingle, ctrl.uploadDocument);
 router.get('/:id/document', requestIdRule, validate, ctrl.downloadDocument);
+
+// Several documents per request (S4). Same rules: auth and role are checked BEFORE the body is parsed.
+router.get('/:id/documents', requestIdRule, validate, ctrl.listDocuments);
+router.post('/:id/documents', authorize(ROLES.CLERK), requestIdRule, validate, uploadSingle, ctrl.addDocument);
+router.get('/:id/documents/:docId/file', documentIdRules, validate, ctrl.downloadDocumentById);
+router.post('/:id/documents/:docId/replace', authorize(ROLES.CLERK), documentIdRules, validate, uploadSingle, ctrl.replaceDocument);
+router.delete('/:id/documents/:docId', authorize(ROLES.CLERK), revokeDocumentRules, validate, ctrl.revokeDocument);
 
 module.exports = router;

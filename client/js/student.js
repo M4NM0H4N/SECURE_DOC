@@ -110,7 +110,7 @@ function init() {
       { class: 'actions' },
       el('a', { class: 'btn btn--ghost btn--sm', href: tpath(`/request.html?id=${encodeURIComponent(r._id)}`), text: 'View details' })
     );
-    if (r.status === 'FULFILLED') {
+    if (r.status === 'FULFILLED' && r.documentCount > 0) {
       actions.append(
         el('a', { class: 'btn btn--sm', href: apiUrl(`/requests/${encodeURIComponent(r._id)}/document`), download: '', text: 'Download document' })
       );

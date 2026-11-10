@@ -12,6 +12,9 @@
 // S2 part, for EVERY institution: seeds the default departments, document types and the
 // Clerk -> HOD workflow if the institution has none, and pins every request that has no
 // workflow yet to that definition (PENDING = step 0, any other status = the last step).
+// S4 part: every request that still has a legacy `documentPath` (one flat file in UPLOAD_DIR)
+// gets a Document record (version 1, ACTIVE) and a copy under a tenant-prefixed key in the
+// configured store (local or S3). The old flat file is left in place for the cleanup script.
 // It uses native collection calls on purpose (the plugin refuses unscoped writes).
 // Run it on a COPY of the data first. It prints counts only, never connection strings.
 require('dotenv').config({ quiet: true });
@@ -23,12 +26,47 @@ const AuditLog = require('../server/models/AuditLog');
 const { runUnscoped, runAsTenant } = require('../server/utils/tenantContext');
 const WorkflowDefinition = require('../server/models/WorkflowDefinition');
 const { seedDefaults } = require('../server/services/institutionService');
+const Document = require('../server/models/Document');
+const config = require('../server/config/env');
+const { getStorage, makeKey } = require('../server/storage');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
 
 const LEGACY = { tenantId: { $exists: false } };
 const NO_WORKFLOW = { workflowDefinitionId: { $exists: false } };
+const LEGACY_FILE = { documentPath: { $type: 'string' } };
+const LEGACY_NAME = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(pdf|png|jpg)$/;
+
+// Copies one legacy file into the store and records it. Returns 'migrated' | 'missing' | 'skipped'.
+async function migrateLegacyDocument(req, storage) {
+  const hasDoc = await Document.collection.countDocuments({ requestId: req._id });
+  if (hasDoc || !LEGACY_NAME.test(req.documentPath)) return 'skipped';
+  const source = path.join(config.uploadDir, req.documentPath);
+  let buffer;
+  try {
+    buffer = await fs.promises.readFile(source);
+  } catch (_err) {
+    return 'missing';
+  }
+  const ext = req.documentPath.split('.').pop();
+  const key = makeKey(req.tenantId, req._id, ext);
+  await storage.put(key, buffer);
+  const fulfilled = [...(req.statusHistory || [])].reverse().find((h) => h.to === 'FULFILLED');
+  const uploader = (fulfilled && fulfilled.by) || req.decidedBy || req.reviewedBy || req.studentId;
+  await runAsTenant(req.tenantId, () =>
+    Document.create([{
+      requestId: req._id, key, fileType: ext, sizeBytes: buffer.length,
+      sha256: crypto.createHash('sha256').update(buffer).digest('hex'),
+      uploadedBy: uploader, createdAt: (fulfilled && fulfilled.at) || req.updatedAt,
+    }])
+  );
+  await Request.collection.updateOne({ _id: req._id }, { $unset: { documentPath: '' } });
+  return 'migrated';
+}
 
 async function migrate({ slug = 'default', name = 'Default Institution', apply = false } = {}) {
-  const report = { applied: apply, tenant: slug, users: 0, requests: 0, auditLogs: 0, droppedEmailIndex: false, createdTenant: false, requestsToPin: 0, tenantsToSeed: 0 };
+  const report = { applied: apply, tenant: slug, users: 0, requests: 0, auditLogs: 0, droppedEmailIndex: false, createdTenant: false, requestsToPin: 0, tenantsToSeed: 0, legacyDocuments: 0, legacyDocumentsMissing: 0 };
 
   let tenant = await runUnscoped(() => Tenant.findOne({ slug }));
   const userFilter = { ...LEGACY, role: { $ne: 'SUPER_ADMIN' } };
@@ -40,6 +78,7 @@ async function migrate({ slug = 'default', name = 'Default Institution', apply =
   report.droppedEmailIndex = Boolean(oldEmailIndex);
   report.createdTenant = !tenant;
   report.requestsToPin = await Request.collection.countDocuments(NO_WORKFLOW);
+  report.legacyDocuments = await Request.collection.countDocuments(LEGACY_FILE);
   const existing = await runUnscoped(() => Tenant.find({}));
   for (const t of existing) {
     if (!(await WorkflowDefinition.collection.countDocuments({ tenantId: t._id }))) report.tenantsToSeed += 1;
@@ -69,6 +108,15 @@ async function migrate({ slug = 'default', name = 'Default Institution', apply =
       await Request.collection.updateMany(own, { $set: { workflowDefinitionId: def._id, currentStepIndex: last } });
     });
   }
+  // S4: legacy single files -> Document records (needs tenantId already set, done above).
+  const storage = getStorage();
+  report.legacyDocuments = 0;
+  for await (const req of Request.collection.find(LEGACY_FILE)) {
+    const outcome = await migrateLegacyDocument(req, storage);
+    if (outcome === 'migrated') report.legacyDocuments += 1;
+    if (outcome === 'missing') report.legacyDocumentsMissing += 1;
+  }
+  await Document.createIndexes();
   await Promise.all([
     require('../server/models/Department').createIndexes(),
     require('../server/models/DocumentType').createIndexes(),

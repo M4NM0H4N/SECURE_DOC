@@ -126,7 +126,7 @@ function init() {
       ask.addEventListener('click', () => node.append(noteForm(r, ask, 'needs-info')));
       actions.append(ask);
     }
-    if (r.status === 'FULFILLED') {
+    if (r.status === 'FULFILLED' && r.documentCount > 0) {
       actions.append(
         el('a', { class: 'btn btn--ghost btn--sm', href: apiUrl(`/requests/${encodeURIComponent(r._id)}/document`), download: '', text: 'Download document' })
       );

@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="referrer" content="no-referrer">
+  <title>Verify a document | DocFlow</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+  <link rel="stylesheet" href="/css/tokens.css">
+  <link rel="stylesheet" href="/css/base.css">
+  <link rel="stylesheet" href="/css/components.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main id="main" class="center-screen">
+    <section class="card card--auth stack">
+      <div>
+        <h1>Document verification</h1>
+        <p class="muted" id="lead">Checking...</p>
+      </div>
+      <div id="result" class="hidden stack" role="status"></div>
+      <div id="check" class="hidden stack">
+        <h2>Is the file you hold the genuine one?</h2>
+        <p class="muted">Choose the file. It is checked on your own device; only its fingerprint is sent, never the file.</p>
+        <input class="input" id="file" type="file" accept=".pdf,.png,.jpg,.jpeg,application/pdf,image/png,image/jpeg" aria-label="The file to check">
+        <div id="check-result" class="hidden" role="status"></div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="/js/verify.js"></script>
+</body>
+</html>

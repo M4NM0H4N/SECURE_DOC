@@ -18,7 +18,7 @@ npm audit --omit=dev          # production dependency check
 | Check | Result |
 |---|---|
 | Test suites | 10 passed, 0 failed |
-| Tests | **341 passed, 0 failed** in 14 suites (requirement: at least 30). 238 are the MVP tests, adapted (tenant paths, configurable workflow, invitations); 103 are new (tenancy 31, migration 5, configurable institution 26, accounts 40, plus 1 for the retired staff route) |
+| Tests | **423 passed, 0 failed** in 17 suites (requirement: at least 30). 238 are the MVP tests, adapted (tenant paths, configurable workflow, invitations, document store); 185 are new (tenancy 31, migration 5, configurable institution 26, accounts 40, 1 for the retired staff route, storage 32, trust 36, storage jobs 14) |
 | ESLint (`server`, `scripts`) | 0 errors, 0 warnings |
 | `npm audit --omit=dev` | 0 vulnerabilities |
 
@@ -117,6 +117,18 @@ Done in the built-in browser during development, with throwaway demo data that w
 - Mutation checks: ignoring the token version made 6 tests fail; disabling the lockout check made 3 fail (both restored).
 - Browser smoke test on a throwaway database: invitation link opened (the token was removed from the address bar), the Clerk accepted it and signed in, enabled two-step sign-in on the Account page (secret, ten backup codes), signed out, and signed in again through the password step and the code step. The Admin page showed the invitation as accepted and the new tools (sign out everywhere, reset link). The scratch database was dropped.
 - `npm run test:unit`: 57 passed.
+
+## Document storage and trust (S4, checked 2026-11-10)
+
+- `storage.test.js` (32): AWS SigV4 against the three published AWS examples; the same behavioural contract run on the local and the S3 adapter (round trip, missing object, 12 malformed keys on four operations, listing across pages, start-up check, raw delete); the S3 adapter against a fake S3 that verifies signature, clock, credential and payload hash (wrong secret or key refused, provider errors become generic messages, unreachable store); the clamd client against a fake daemon (clean, infected EICAR, a 200 KB multi-chunk file received byte for byte, down/hang/error/garbage under `required` and `optional`); configuration guards.
+- `trust.test.js` (36): every document flow on BOTH adapters (tenant-prefixed key and hash recorded, byte-exact download, extra documents, replacement history, revocation with a reason hidden from the student and the audit trail, concurrent replacement with exactly one winner and the loser file removed, database failure rollbacks, the ten-document cap, missing file, tampered keys, a store outage as 502); malware scanning on every upload path (nothing stored or recorded, attempt audited, scanner never consulted for refused uploads); public verification (only six fields returned, superseded and revoked states, forged/tampered/other-document codes, hash check without revealing the hash, 503 without a key, rate limit); tenant isolation of every document route, keys and verification codes.
+- `storageJobs.test.js` (14): the cleanup job on both adapters (dry run, grace period, retention, purged marker, active files never deleted, missing files reported, legacy references), the migration of pre-S4 files, and codes whose signature contains `-` or `_`.
+- **A bug the tests caught:** verification codes were split on every dash, but a signature can itself contain one (about 40% of codes). A unit test now forces such codes.
+- Adaptations of existing tests (none deleted): the document tests look at tenant-prefixed keys and `Document` records instead of one flat `documentPath`; the tampered-path test now tampers the Document key.
+- Mutation checks: skipping the scan made 6 tests fail; removing the key-prefix check 2; making replacement unconditional 2; skipping the signature comparison 1 (all restored).
+- QR encoder (`qrcode-generator` 1.4.4, vendored): codes for verification-style URLs decoded back exactly with an independent decoder (jsQR) at two error-correction levels. In the browser: the request page showed the document, its QR and link; the public verify page reported the document valid, accepted the genuine file and rejected an altered one.
+- `npm run test:unit`: 66 passed.
+- **Not verified:** a real R2 or S3 bucket, a real ClamAV daemon (see [TRUST.md](TRUST.md)).
 
 ## Not covered (be honest in the report)
 

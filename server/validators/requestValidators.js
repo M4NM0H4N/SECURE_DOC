@@ -55,3 +55,17 @@ const resubmitRules = [
 
 module.exports.needsInfoRules = needsInfoRules;
 module.exports.resubmitRules = resubmitRules;
+
+const documentIdRules = [
+  param('id').isMongoId().withMessage('Invalid request id'),
+  param('docId').isMongoId().withMessage('Invalid document id'),
+];
+const revokeDocumentRules = [
+  ...documentIdRules,
+  body('reason')
+    .isString().withMessage('A reason is required').bail()
+    .trim()
+    .isLength({ min: 5, max: 500 }).withMessage('The reason must be 5-500 characters'),
+];
+module.exports.documentIdRules = documentIdRules;
+module.exports.revokeDocumentRules = revokeDocumentRules;
