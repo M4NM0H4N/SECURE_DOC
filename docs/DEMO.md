@@ -59,7 +59,7 @@ For a rehearsed, repeatable version of all of this, run `npm test`: the `e2e.tes
 - **Server-side enforcement:** hiding a button is not security; every rule is checked on the backend and tested.
 - **Integrity:** status changes are atomic; the status change and its audit record commit together in a transaction; files are written first and removed if anything fails.
 - **Honest limits:** audit log is append-only at application level, not immutable; transactions need a replica set; see [LIMITATIONS.md](LIMITATIONS.md).
-- **Process:** built in six reviewed phases; 274 automated tests; CI pipeline defined (not yet run on a Jenkins server).
+- **Process:** built in six reviewed phases; 274 automated tests; CI pipeline defined and later confirmed green on GitHub Actions and a local Jenkins server (see CI.md).
 
 ## Suggested slide outline
 1. Problem and SDG 16 link

@@ -45,7 +45,7 @@ An honest list of what the MVP does not do, and what could come next.
 - **No automated browser/UI tests.** Frontend behaviour was checked by hand; only source-level rules are tested automatically.
 - **No load or performance testing.**
 - **Colour contrast was designed for but not measured** with a tool.
-- **The Jenkins pipeline has not run on a Jenkins server.** Its commands were run locally against a throwaway CI database. There is no deployment stage.
+- **The Jenkins pipeline has run on one local Windows Jenkins server only** (green), not on a shared Linux server and not from a webhook. There is no deployment stage. See [CI.md](CI.md).
 - **Antigravity skill discovery was not confirmed.** The skill files are installed in both agent folders.
 
 ## Future enhancements

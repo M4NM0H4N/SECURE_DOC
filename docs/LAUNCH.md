@@ -22,7 +22,7 @@ Status: **implemented and verified locally. Not deployed.** Everything that need
 - Browser tests: **84 passed** (`npm run test:e2e`, installed Chrome): 11 journey, 38 accessibility scans, 35 responsive checks. One real defect was found and fixed (keyboard access to scrollable tables).
 - Load (`scripts/loadTest.js`, 25 concurrent clients, 20 s, mix of public pages, public API and signed-in student requests): 17,281 requests, 863 requests/s, 0 errors, p50 26 ms, p95 69 ms, p99 83 ms, max 169 ms. The app's own per-IP rate limiter was raised for this run (`RATE_LIMIT_GENERAL_MAX`), since one client address would otherwise be (correctly) throttled. A hosted instance on a small plan with a remote database will be slower; rerun against staging.
 - Restore drill: passed on the local development database (`npm run backup -- --drill`).
-- Jenkins and GitHub Actions: the workflows are written and their commands pass locally; **neither has run on its server for these changes** (the push will trigger GitHub Actions; check its result there).
+- Jenkins and GitHub Actions: both have since run green on commit `c9c37ed` (GitHub Actions: lint, unit, full suite, build, audit, browser tests; Jenkins: the Jenkinsfile stages on a local Windows Jenkins). Two CI-only defects were found and fixed first (see [CI.md](CI.md)).
 
 ## 3. What the owner must do (nothing below has been done)
 1. Create accounts/services: MongoDB Atlas (production and staging databases, IP access list, no `0.0.0.0/0` unless knowingly temporary), Cloudflare R2 bucket(s) (+ versioning), a ClamAV host reachable as `CLAMD_HOST`, Resend (verified sending domain), Render.

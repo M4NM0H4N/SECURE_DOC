@@ -146,7 +146,7 @@ Done in the built-in browser during development, with throwaway demo data that w
 - No automated browser/UI tests. Frontend behaviour was checked by hand (above); only source-level rules (no `innerHTML`, no inline scripts/handlers/styles) are enforced by tests.
 - No load or performance testing.
 - Contrast ratios were designed for, not measured with a tool.
-- The Jenkins pipeline has not run on a Jenkins server. Its stages were run by hand against a throwaway CI database (see CI.md): 10 unit tests, 202 total, build check passed.
+- (At the time of the MVP report) the Jenkins pipeline had not run on a Jenkins server; it has since run green, see "CI results" at the end of this file. Its stages were run by hand against a throwaway CI database (see CI.md): 10 unit tests, 202 total, build check passed.
 - The rejected-request view on the Student dashboard was verified through the API, not visually.
 - HSTS/`Secure` cookies only apply in production mode and were not exercised over HTTPS.
 
@@ -163,4 +163,12 @@ Done in the built-in browser during development, with throwaway demo data that w
 | `npm run backup -- --drill` | passed on the local development database |
 | `scripts/loadTest.js` | 863 requests/s, p95 69 ms, 0 errors (local, single process; see LAUNCH.md) |
 
-Browser tests need a Chrome install locally (or `npx playwright install chromium` and `PW_CHANNEL=`), and use a throwaway local database whose name contains `e2e` (derived from `MONGODB_URI_TEST`); they refuse any other database. GitHub Actions and Jenkins have not yet run these.
+Browser tests need a Chrome install locally (or `npx playwright install chromium` and `PW_CHANNEL=`), and use a throwaway local database whose name contains `e2e` (derived from `MONGODB_URI_TEST`); they refuse any other database. GitHub Actions runs them in its `e2e` job (green); the Jenkinsfile does not run them.
+
+## CI results (confirmed on servers)
+| Where | Result |
+|---|---|
+| GitHub Actions, branch `saas`, commit `c9c37ed` | Green: lint, unit tests, full suite, build verification, production audit, and the Playwright browser job |
+| Jenkins (local Windows controller), same commit | `Finished: SUCCESS` through every stage of the Jenkinsfile; the build's Test Result page holds the exact counts |
+
+Before these runs, every GitHub Actions run had failed on a quoting bug in the `test:unit` script and, later, on the browser job's missing test secret. Both were fixed (see [CI.md](CI.md)). Locally: 683 Jest tests in 30 suites and 84 browser tests.

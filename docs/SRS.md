@@ -144,7 +144,7 @@ Each criterion from the project plan, with the evidence that exists today.
 | MongoDB transaction limits documented and tested | Met | [TRANSACTIONS.md](TRANSACTIONS.md), `transactions.test.js` |
 | Mobile and desktop layouts work | Met (manual) | measured at 375, 768 and desktop; no automated UI tests |
 | Automated test results recorded | Met | 238 tests passing, [TESTING.md](TESTING.md) |
-| Jenkins pipeline runs successfully | **Not yet demonstrated** | `Jenkinsfile` written; its commands pass locally, but it has not run on a Jenkins server |
+| Jenkins pipeline runs successfully | Met (local Jenkins server) | `Jenkinsfile` ran to `SUCCESS` on a Jenkins server (commit `c9c37ed`); GitHub Actions CI also green. See [CI.md](CI.md) |
 | UML diagrams and SE documentation complete | Met | [UML.md](UML.md), this SRS, [API.md](API.md) |
 | End-to-end demonstration works | Met | `e2e.test.js` (automated) and [DEMO.md](DEMO.md) |
 
