@@ -19,7 +19,7 @@
     "seed:demo:clean": "node scripts/seedDemo.js --clean",
     "lint": "eslint server scripts e2e playwright.config.js",
     "test": "jest --runInBand --forceExit",
-    "test:unit": "jest --runInBand --forceExit --testNamePattern=[(]unit[)]",
+    "test:unit": "jest --runInBand --forceExit --testNamePattern=\"\\(unit\\)\"",
     "test:ci": "jest --runInBand --forceExit --ci --reporters=default --reporters=jest-junit",
     "build": "node scripts/verifyBuild.js",
     "test:e2e": "playwright test",
