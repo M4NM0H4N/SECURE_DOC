@@ -8,7 +8,7 @@
 const { defineConfig, devices } = require('@playwright/test');
 const path = require('path');
 const os = require('os');
-const { e2eUri, PORT, DEMO_PASSWORD } = require('./e2e/env');
+const { e2eUri, PORT, DEMO_PASSWORD, E2E_KEYS } = require('./e2e/env');
 
 const channel = process.env.PW_CHANNEL !== undefined ? process.env.PW_CHANNEL || undefined : process.env.CI ? undefined : 'chrome';
 
@@ -38,10 +38,7 @@ module.exports = defineConfig({
       PORT: String(PORT),
       HOST: '127.0.0.1',
       MONGODB_URI: e2eUri(),
-      JWT_SECRET: 'e2e-secret-e2e-secret-e2e-secret-e2e-secret-1234',
-      MFA_ENCRYPTION_KEY: 'e2e-mfa-key-e2e-mfa-key-e2e-mfa-key-1234',
-      VERIFY_SIGNING_KEY: 'e2e-verify-key-e2e-verify-key-e2e-1234',
-      WEBHOOK_ENCRYPTION_KEY: 'e2e-webhook-key-e2e-webhook-key-e2e-1234',
+      ...E2E_KEYS,
       STORAGE_DRIVER: 'local',
       UPLOAD_DIR: path.join(os.tmpdir(), 'sdw-e2e-uploads'),
       SCAN_MODE: 'off',

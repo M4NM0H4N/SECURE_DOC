@@ -19,4 +19,12 @@ function e2eUri() {
   return uri;
 }
 
-module.exports = { e2eUri, PORT, DEMO_PASSWORD };
+// Throwaway keys for the local e2e server and its seed script. Test values only; never used anywhere else.
+const E2E_KEYS = {
+  JWT_SECRET: 'e2e-secret-e2e-secret-e2e-secret-e2e-secret-1234',
+  MFA_ENCRYPTION_KEY: 'e2e-mfa-key-e2e-mfa-key-e2e-mfa-key-1234',
+  VERIFY_SIGNING_KEY: 'e2e-verify-key-e2e-verify-key-e2e-1234',
+  WEBHOOK_ENCRYPTION_KEY: 'e2e-webhook-key-e2e-webhook-key-e2e-1234',
+};
+
+module.exports = { e2eUri, PORT, DEMO_PASSWORD, E2E_KEYS };

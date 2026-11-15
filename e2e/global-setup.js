@@ -5,7 +5,7 @@
 const { spawnSync } = require('child_process');
 const path = require('path');
 const mongoose = require('mongoose');
-const { e2eUri, DEMO_PASSWORD } = require('./env');
+const { e2eUri, DEMO_PASSWORD, E2E_KEYS } = require('./env');
 
 module.exports = async () => {
   const uri = e2eUri();
@@ -16,7 +16,7 @@ module.exports = async () => {
     await conn.close();
   }
   const seed = spawnSync(process.execPath, [path.join(__dirname, '..', 'scripts', 'seedDemo.js')], {
-    env: { ...process.env, NODE_ENV: 'development', MONGODB_URI: uri, DEMO_PASSWORD, MAIL_PROVIDER: 'outbox' },
+    env: { ...process.env, ...E2E_KEYS, NODE_ENV: 'development', MONGODB_URI: uri, DEMO_PASSWORD, MAIL_PROVIDER: 'outbox' },
     encoding: 'utf8',
   });
   if (seed.status !== 0) throw new Error('Seeding the e2e database failed: ' + (seed.stderr || seed.stdout));
