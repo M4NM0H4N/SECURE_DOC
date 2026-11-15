@@ -101,6 +101,7 @@ Jenkinsfile  CI pipeline            docker-compose*.yml  MongoDB for dev and CI
 | [docs/TESTING.md](docs/TESTING.md) | Real test results and the security scenario mapping |
 | [docs/TRANSACTIONS.md](docs/TRANSACTIONS.md) | What is atomic, what is not, and why |
 | [docs/CI.md](docs/CI.md) | CI pipelines (Jenkins, GitHub Actions) and what was verified |
+| [docs/DEPLOY_DEMO.md](docs/DEPLOY_DEMO.md) | Step-by-step demo deployment (Render free + Atlas) |
 | [docs/JENKINS_LOCAL.md](docs/JENKINS_LOCAL.md) | Exact working Jenkins setup on Windows and the problems fixed |
 | [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) | MongoDB Atlas + Render: settings, environment variables, file-storage limits, checklist (not yet deployed) |
 | [docs/DEMO.md](docs/DEMO.md) | Demonstration script and presentation outline |
