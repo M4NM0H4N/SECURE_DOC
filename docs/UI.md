@@ -31,3 +31,11 @@ WCAG 2.1 A/AA scans (axe) run on every page in both themes (`e2e/a11y.spec.js`);
 - **Request details:** progress track at the top and a history timeline whose dot colour follows the status reached (violet pending, cyan under review, lime approved, green fulfilled, red rejected, amber needs information); the document card has a cyan accent.
 - **Analytics:** summary figures as tiles; bars use a violet-to-cyan gradient.
 - **Admin, audit, settings, account pages:** pick up the new theme and sidebar automatically; their tables and forms use the same tokens.
+
+## Landing page (dynamic)
+Public page at `/t/<slug>/` (`home.html`, `js/landing.js`, `css/landing.css`). Signed-in visitors are redirected to their dashboard.
+- **From the server, per institution:** name, logo, tagline and brand colour (branding endpoint); the departments it serves (public list); a live status pill from `/readyz` (booleans only). No request numbers or personal data are shown.
+- **Interactive:** the hero stack tilts with the mouse; an example request steps through Request, Review, Approve, Issue (auto-plays, stops when the visitor chooses a step) and lights the Identity, Validation and Proof layers; role tabs (keyboard: arrows, Home, End); FAQ; inline "verify a document" box (a plain GET form, so it works without scripting); light/dark switch.
+- **Safe by construction:** no inline scripts or styles, no HTML strings (DOM methods only), animation is transform-only so text is never hidden, everything stops under "reduce motion".
+- **Honest copy:** says hash-chained audit log and signed verification codes; says plainly it is not a blockchain.
+- **Tests:** `e2e/landing.spec.js` (9 tests) plus the page in the accessibility (both themes) and layout (320/375/768px) scans.

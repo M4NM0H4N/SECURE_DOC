@@ -17,7 +17,7 @@ for (const width of WIDTHS) {
   test.describe(`${width}px wide`, () => {
     test.use({ viewport: { width, height: 800 } });
 
-    for (const p of ['/login.html', '/register.html', '/terms.html', '/status.html']) {
+    for (const p of ['/', '/login.html', '/register.html', '/terms.html', '/status.html']) {
       test(`public ${p}`, async ({ page }) => {
         await page.goto(path(p));
         await page.waitForLoadState('networkidle');

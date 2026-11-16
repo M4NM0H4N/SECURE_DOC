@@ -24,14 +24,18 @@
         <span>DocFlow</span>
       </a>
       <nav class="land-links" aria-label="Main">
-        <a href="#how">How it works</a>
-        <a href="#layers">Three layers</a>
-        <a href="verify.html">Verify a document</a>
+        <a class="hide-sm" href="#how">How it works</a>
+        <a class="hide-sm" href="#roles">Who uses it</a>
+        <a class="hide-sm" href="#features">Features</a>
+        <a class="hide-sm" href="#faq">FAQ</a>
+        <button class="btn btn--ghost btn--sm" id="theme-btn" type="button">Light mode</button>
         <a class="btn btn--ghost btn--sm" href="login.html">Sign in</a>
+        <a class="btn btn--sm hide-sm" href="register.html">Create account</a>
       </nav>
     </header>
 
     <main id="main">
+      <!-- 1. Hero -->
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-text">
           <p class="pill-badge">Secure &middot; Transparent &middot; Trusted</p>
@@ -48,11 +52,18 @@
           </ul>
           <div class="hero-cta">
             <a class="btn" href="login.html">Get started</a>
-            <a class="btn btn--ghost" href="#how">Learn more</a>
+            <a class="btn btn--ghost" href="#how">See how it works</a>
           </div>
+          <form class="verify-mini" action="verify.html" method="get">
+            <label for="hero-code">Have a document? Check it</label>
+            <div class="verify-row">
+              <input class="input" id="hero-code" name="code" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="200" placeholder="Paste the verification code">
+              <button class="btn btn--sm" type="submit">Verify</button>
+            </div>
+          </form>
         </div>
 
-        <div class="hero-art">
+        <div class="hero-art" id="hero-art">
           <svg class="stack-art" viewBox="0 0 520 570" role="img" aria-label="Three glass layers labelled Identity, Validation and Proof, topped by a check mark">
             <defs>
               <linearGradient id="gLime" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d4f7a0"/><stop offset="1" stop-color="#a6e35b"/></linearGradient>
@@ -92,22 +103,120 @@
         </div>
       </section>
 
-      <section id="how" class="band" aria-labelledby="how-title">
-        <h2 id="how-title" class="band-title">How it <span class="t-lime">works</span></h2>
-        <ol class="steps">
-          <li class="step-card"><span class="step-no">1</span><h3>Request</h3><p>A student asks for an official document and states the purpose. It is logged at once.</p></li>
-          <li class="step-card"><span class="step-no">2</span><h3>Review</h3><p>A clerk of the student's department checks the request and moves it forward.</p></li>
-          <li class="step-card"><span class="step-no">3</span><h3>Approve</h3><p>The head of department approves, or rejects with a written reason the student can read.</p></li>
-          <li class="step-card"><span class="step-no">4</span><h3>Issue &amp; verify</h3><p>The clerk uploads the document. The student downloads it, and anyone can verify it with its code or QR.</p></li>
-        </ol>
+      <!-- 2. Live strip -->
+      <section class="strip" aria-label="Service information">
+        <p class="status-pill" id="status-pill" role="status"><span class="dot" aria-hidden="true"></span><span id="status-text">Checking service...</span></p>
+        <ul class="facts">
+          <li><strong>4</strong> approval stages</li>
+          <li><strong>5</strong> roles, each with its own limits</li>
+          <li><strong>3</strong> layers of trust</li>
+        </ul>
+        <div class="dept-chips" id="dept-box" hidden>
+          <span class="muted">Departments:</span>
+          <ul id="dept-list" class="chips"></ul>
+        </div>
       </section>
 
-      <section id="layers" class="band" aria-labelledby="layers-title">
+      <!-- 3. Interactive workflow -->
+      <section id="how" class="band reveal" aria-labelledby="how-title">
+        <h2 id="how-title" class="band-title">See a request <span class="t-lime">move</span></h2>
+        <p class="band-sub">An example request, step by step. Choose a step, or let it play.</p>
+        <div class="demo">
+          <div class="demo-steps" role="group" aria-label="Workflow steps">
+            <button class="demo-step" type="button" data-i="0" aria-pressed="true"><span class="step-no">1</span><span><strong>Request</strong><small>Student</small></span></button>
+            <button class="demo-step" type="button" data-i="1" aria-pressed="false"><span class="step-no">2</span><span><strong>Review</strong><small>Clerk</small></span></button>
+            <button class="demo-step" type="button" data-i="2" aria-pressed="false"><span class="step-no">3</span><span><strong>Approve</strong><small>Head of department</small></span></button>
+            <button class="demo-step" type="button" data-i="3" aria-pressed="false"><span class="step-no">4</span><span><strong>Issue &amp; verify</strong><small>Clerk</small></span></button>
+          </div>
+          <article class="demo-card" aria-live="polite" aria-label="Example request">
+            <div class="req-head"><h3>Bonafide Certificate</h3><span class="badge" id="demo-badge">Pending</span></div>
+            <p class="muted">Example request. Not real data.</p>
+            <ol class="track" id="demo-track" aria-label="Progress"></ol>
+            <p class="demo-text" id="demo-text"></p>
+            <ul class="layer-chips" aria-label="Trust layers reached">
+              <li class="chip chip-lime" id="chip-1">Identity</li>
+              <li class="chip chip-violet" id="chip-2">Validation</li>
+              <li class="chip chip-cyan" id="chip-3">Proof</li>
+            </ul>
+          </article>
+        </div>
+      </section>
+
+      <!-- 4. Roles -->
+      <section id="roles" class="band reveal" aria-labelledby="roles-title">
+        <h2 id="roles-title" class="band-title">One system, <span class="t-cyan">five roles</span></h2>
+        <div class="tabs" role="tablist" aria-label="Roles">
+          <button class="tab" role="tab" id="tab-student" aria-controls="panel-student" aria-selected="true" type="button">Student</button>
+          <button class="tab" role="tab" id="tab-clerk" aria-controls="panel-clerk" aria-selected="false" tabindex="-1" type="button">Clerk</button>
+          <button class="tab" role="tab" id="tab-hod" aria-controls="panel-hod" aria-selected="false" tabindex="-1" type="button">HOD</button>
+          <button class="tab" role="tab" id="tab-principal" aria-controls="panel-principal" aria-selected="false" tabindex="-1" type="button">Principal</button>
+          <button class="tab" role="tab" id="tab-admin" aria-controls="panel-admin" aria-selected="false" tabindex="-1" type="button">Admin</button>
+        </div>
+        <div class="tab-panel card" role="tabpanel" id="panel-student" aria-labelledby="tab-student">
+          <h3>Student</h3>
+          <ul class="check-list"><li>Register and request any official document, with the purpose</li><li>Track every request: status, history and the reason if it is rejected</li><li>Answer a reviewer's question and resubmit</li><li>Download the issued document and verify it with its code or QR</li></ul>
+        </div>
+        <div class="tab-panel card" role="tabpanel" id="panel-clerk" aria-labelledby="tab-clerk" hidden>
+          <h3>Clerk</h3>
+          <ul class="check-list"><li>Work a queue limited to your own department</li><li>Move a request to review, or ask the student for more information</li><li>Upload the official document once it is approved</li><li>Replace or withdraw a document that was issued by mistake</li></ul>
+        </div>
+        <div class="tab-panel card" role="tabpanel" id="panel-hod" aria-labelledby="tab-hod" hidden>
+          <h3>Head of department</h3>
+          <ul class="check-list"><li>See only the requests of your own department</li><li>Approve, or reject with a written reason the student can read</li><li>Every decision is recorded with your name and the time</li></ul>
+        </div>
+        <div class="tab-panel card" role="tabpanel" id="panel-principal" aria-labelledby="tab-principal" hidden>
+          <h3>Principal</h3>
+          <ul class="check-list"><li>Take the final decision where your institution's chain includes it</li><li>See institution-wide analytics: turnaround times, backlog, rejection rate</li></ul>
+        </div>
+        <div class="tab-panel card" role="tabpanel" id="panel-admin" aria-labelledby="tab-admin" hidden>
+          <h3>Admin</h3>
+          <ul class="check-list"><li>Invite staff, deactivate leavers, unlock accounts</li><li>Set departments, document types and the approval chain</li><li>Read the audit trail and check its integrity in one click</li><li>Export data, set branding, and create keys and webhooks for integrations</li></ul>
+        </div>
+      </section>
+
+      <!-- 5. Three layers -->
+      <section id="layers" class="band reveal" aria-labelledby="layers-title">
         <h2 id="layers-title" class="band-title">Three layers of <span class="t-cyan">trust</span></h2>
         <div class="trust-grid">
           <article class="trust-card trust-1"><h3>Identity <small>Who is acting?</small></h3><p>Sign-in with optional two-step codes, fixed roles, and department scope: staff only ever see their own department.</p></article>
-          <article class="trust-card trust-2"><h3>Validation <small>Is it allowed?</small></h3><p>Only legal status steps are accepted, a rejection needs a reason, and uploads are checked by their real file type.</p></article>
+          <article class="trust-card trust-2"><h3>Validation <small>Is it allowed?</small></h3><p>Only legal status steps are accepted, a rejection needs a reason, and uploads are checked by their real file type and scanned.</p></article>
           <article class="trust-card trust-3"><h3>Proof <small>Can it be verified?</small></h3><p>Every action goes into an audit log chained with hashes, so tampering is detectable. Issued documents carry a signed verification code.</p></article>
+        </div>
+      </section>
+
+      <!-- 6. Features -->
+      <section id="features" class="band reveal" aria-labelledby="features-title">
+        <h2 id="features-title" class="band-title">Everything a <span class="t-lime">document office</span> needs</h2>
+        <ul class="feature-grid">
+          <li class="feature"><svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M10 12h5M10 16h5"/></svg><h3>Request tracking</h3><p>Status, history and reasons, visible to the student at any time.</p></li>
+          <li class="feature"><svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h14v16H5z"/><path d="M8.5 9h7M8.5 12.5h7M8.5 16h4"/></svg><h3>Audit trail</h3><p>Who did what and when, hash-chained, with a one-click integrity check.</p></li>
+          <li class="feature"><svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.2 3 7.4 7.5 8.5 4.5-1.1 7.5-4.3 7.5-8.5V6L12 3z"/><path d="m9 12 2 2 4-4"/></svg><h3>QR verification</h3><p>Anyone can confirm a document is genuine, without signing in.</p></li>
+          <li class="feature"><svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 1 1 12 0v5l1.5 2h-15L6 16z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg><h3>Reminders &amp; deadlines</h3><p>Optional deadlines per step with reminders and escalation. Nothing is decided automatically.</p></li>
+          <li class="feature"><svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19V10M12 19V5M19 19v-6"/></svg><h3>Analytics</h3><p>Turnaround, backlog and rejection rate, as counts only, never personal data.</p></li>
+          <li class="feature"><svg class="f-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3v5M15 3v5"/><path d="M6 8h12v3a6 6 0 0 1-12 0V8z"/><path d="M12 17v4"/></svg><h3>Integrations</h3><p>Read-only API keys and signed webhooks for your own systems.</p></li>
+        </ul>
+      </section>
+
+      <!-- 7. FAQ -->
+      <section id="faq" class="band reveal" aria-labelledby="faq-title">
+        <h2 id="faq-title" class="band-title">Questions, <span class="t-cyan">answered</span></h2>
+        <div class="faq">
+          <details><summary>Who can see my request?</summary><p>You, and staff of your own department whose role needs it. Other departments and other institutions cannot see it. The Admin sees the list but cannot read documents.</p></details>
+          <details><summary>Are my documents private?</summary><p>Yes. Files are stored privately and only the right people can download them through the system. They are checked by their real file type and scanned when scanning is enabled.</p></details>
+          <details><summary>Can someone check a document without signing in?</summary><p>Yes. Every issued document has a verification code and QR. The verify page tells you whether it is genuine, replaced or withdrawn.</p></details>
+          <details><summary>Is this a blockchain?</summary><p>No. Actions are recorded in an audit log chained with hashes, which makes tampering detectable. It is not a blockchain and it does not replace the institution's own records.</p></details>
+          <details><summary>What if my request is rejected?</summary><p>The head of department must write a reason, and you can read it on your request. A reviewer can also ask you for more information, and you can answer and resubmit.</p></details>
+          <details><summary>Will I get e-mails?</summary><p>If your institution has turned e-mail on, you are notified about progress. You can also see everything in the notifications page.</p></details>
+        </div>
+      </section>
+
+      <!-- 8. Final call -->
+      <section class="cta-band reveal" aria-labelledby="cta-title">
+        <h2 id="cta-title">Ready to <span class="t-lime">start</span>?</h2>
+        <p>Sign in to track your requests, or create a student account.</p>
+        <div class="hero-cta">
+          <a class="btn" href="login.html">Sign in</a>
+          <a class="btn btn--ghost" href="register.html">Create account</a>
         </div>
       </section>
     </main>
@@ -117,6 +226,7 @@
     </footer>
   </div>
   <p id="redirecting" class="muted center-screen">Loading...</p>
+  <noscript><p class="center-screen">JavaScript is needed to load this page. <a href="login.html">Sign in</a></p></noscript>
   <script type="module" src="/js/home.js"></script>
 </body>
 </html>

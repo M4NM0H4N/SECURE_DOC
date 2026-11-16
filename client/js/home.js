@@ -1,5 +1,6 @@
 import { api, ROLE_HOME } from './api.js';
 import { applyBranding } from './branding.js';
+import { initLanding } from './landing.js';
 
 // Signed-in visitors go straight to their own dashboard; everyone else sees the landing page.
 api('/auth/me')
@@ -7,5 +8,6 @@ api('/auth/me')
   .catch(() => {
     document.getElementById('redirecting').classList.add('hidden');
     document.getElementById('landing').classList.remove('hidden');
-    applyBranding(); // the institution's name, tagline and logo
+    applyBranding(); // the institution's name, tagline, logo and colour
+    initLanding();
   });

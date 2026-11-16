@@ -17,6 +17,7 @@ const required = [
   'client/css/landing.css',
   'client/css/dashboard.css',
   'client/js/theme.js',
+  'client/js/landing.js',
   'client/terms.html',
   'client/privacy.html',
   'client/support.html',
