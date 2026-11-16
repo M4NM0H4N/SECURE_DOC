@@ -1,5 +1,5 @@
 import { api, el, ROLE_HOME, apiUrl } from './api.js';
-import { statusBadge, formatDate, STATUS_LABELS } from './format.js';
+import { statusBadge, formatDate, STATUS_LABELS, progress } from './format.js';
 import { drawQr } from './qr.js';
 import { requireUser } from './layout.js';
 
@@ -21,6 +21,7 @@ async function init() {
     const r = request;
     root.replaceChildren(
       el('div', { class: 'req-head' }, el('h1', { text: r.documentType }), statusBadge(r.status)),
+      progress(r.status),
       el(
         'dl',
         { class: 'meta' },
@@ -162,7 +163,7 @@ function timeline(history) {
     ol.append(
       el(
         'li',
-        {},
+        { class: `tl-${String(h.to).toLowerCase()}` },
         el('strong', { text: STATUS_LABELS[h.to] || h.to }),
         h.step ? el('span', { class: 'muted', text: ` (${h.step})` }) : '',
         el('span', { class: 'muted', text: ` · ${formatDate(h.at)}${h.by ? ` · ${h.by.name}` : ''}` }),

@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
   <link rel="stylesheet" href="/css/requests.css">
   <script src="/js/theme.js"></script>
 </head>
@@ -18,9 +19,14 @@
   <a class="skip-link" href="#main">Skip to content</a>
   <header id="topbar"></header>
   <main id="main" class="container page">
-    <h1 id="welcome">Loading...</h1>
+    <section class="card welcome-card welcome-card--solo" aria-labelledby="welcome">
+      <div>
+        <h1 id="welcome">Loading...</h1>
+        <p id="hint" class="muted"></p>
+      </div>
+    </section>
     <div id="content" class="stack hidden">
-      <p id="hint" class="muted"></p>
+      <section id="stats" class="stats-row stats-row--auto" aria-label="Queue statistics"></section>
       <div id="page-alert" class="hidden" role="alert"></div>
       <div class="field filter">
         <label for="status-filter">Show</label>

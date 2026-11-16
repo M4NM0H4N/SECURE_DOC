@@ -1,5 +1,5 @@
 import { api, el, tpath, apiUrl } from './api.js';
-import { STATUS_LABELS, statusBadge, formatDate } from './format.js';
+import { STATUS_LABELS, statusBadge, formatDate, progress } from './format.js';
 import { requireUser, showAlert, hideAlert } from './layout.js';
 
 // Shared dashboard for CLERK and HOD. Buttons are a convenience only:
@@ -62,6 +62,28 @@ function init() {
   filter.value = DEFAULT_FILTER[ROLE];
   filter.addEventListener('change', () => load());
 
+  // Live counts per status; each tile filters the list below (and shows which filter is active).
+  const TILES = [['PENDING', 'Pending', 'stat-violet'], ['UNDER_REVIEW', 'Under review', 'stat-cyan'], ['APPROVED', 'Approved', 'stat-lime'], ['FULFILLED', 'Fulfilled', 'stat-green'], ['REJECTED', 'Rejected', 'stat-red']];
+  async function loadStats() {
+    const box = document.getElementById('stats');
+    try {
+      const totals = await Promise.all(TILES.map(([s]) => api(`/requests?status=${s}&limit=1`).then((r) => r.total)));
+      box.replaceChildren(
+        ...TILES.map(([status, label, cls], i) => {
+          const tile = el('button', { class: `stat ${cls}`, type: 'button', 'aria-pressed': String(filter.value === status) }, el('strong', { text: String(totals[i]) }), el('span', { text: label }));
+          tile.addEventListener('click', () => {
+            filter.value = filter.value === status ? '' : status;
+            load();
+            loadStats();
+          });
+          return tile;
+        })
+      );
+    } catch (_e) {
+      box.replaceChildren(); // the list still works without the numbers
+    }
+  }
+
   let page = 1;
   const tools = addListTools(state, () => new URLSearchParams(filter.value ? { status: filter.value } : {}), () => load());
   const more = el('button', { class: 'btn btn--ghost hidden', type: 'button', text: 'Load more' });
@@ -116,6 +138,7 @@ function init() {
       showAlert(alertBox, detail || err.message);
     }
     await load();
+    loadStats();
   }
 
   function card(r) {
@@ -124,7 +147,8 @@ function init() {
       { class: 'card req-card' },
       el('div', { class: 'req-head' }, el('h3', { text: r.documentType }), statusBadge(r.status)),
       el('p', { class: 'muted', text: `${r.studentId ? r.studentId.name : 'Unknown student'} · ${formatDate(r.createdAt)}` }),
-      el('p', { text: r.purpose })
+      el('p', { text: r.purpose }),
+      progress(r.status)
     );
     if (r.currentStep && !['FULFILLED', 'REJECTED'].includes(r.status)) {
       node.append(el('p', { class: 'hint', text: `Waiting on: ${r.currentStep}` }));
@@ -230,5 +254,6 @@ function init() {
     return form;
   }
 
+  loadStats();
   load();
 }

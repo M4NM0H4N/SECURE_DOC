@@ -80,3 +80,29 @@
   .stats-row { grid-template-columns: repeat(4, 1fr); }
   .welcome-card { grid-template-columns: 1fr 1.4fr; }
 }
+
+/* ---- Staff dashboards ---- */
+.welcome-card--solo { grid-template-columns: 1fr !important; }
+.stats-row--auto { grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); }
+button.stat { font: inherit; color: inherit; text-align: left; cursor: pointer; transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease); }
+button.stat:hover { transform: translateY(-2px); }
+button.stat[aria-pressed='true'] { box-shadow: var(--shadow), var(--glow-cyan); outline: 2px solid var(--cyan); outline-offset: -2px; }
+.stat-green { border-top-color: var(--success); }
+.stat-green strong { color: var(--success); }
+
+/* ---- Request history timeline: a dot per step, coloured by the status reached ---- */
+.timeline { border-left-color: var(--border); }
+.timeline li::before { background: var(--violet); box-shadow: 0 0 0 4px var(--surface-solid), var(--glow-violet); }
+.timeline li.tl-under_review::before { background: var(--cyan); box-shadow: 0 0 0 4px var(--surface-solid), var(--glow-cyan); }
+.timeline li.tl-approved::before { background: var(--lime); box-shadow: 0 0 0 4px var(--surface-solid), var(--glow-primary); }
+.timeline li.tl-fulfilled::before { background: var(--success); box-shadow: 0 0 0 4px var(--surface-solid); }
+.timeline li.tl-rejected::before { background: var(--danger); box-shadow: 0 0 0 4px var(--surface-solid); }
+.timeline li.tl-needs_info::before { background: var(--warn); box-shadow: 0 0 0 4px var(--surface-solid); }
+#documents { border-top: 3px solid var(--cyan); box-shadow: var(--shadow), var(--glow-cyan); }
+#detail .track { margin-block: var(--space-4); }
+
+/* ---- Analytics: summary tiles ---- */
+#cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: var(--space-3); }
+#cards > div { margin-top: 0 !important; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--field); }
+#cards strong { display: block; font: 800 1.8rem/1.1 var(--font-display); color: var(--cyan-text); }
+:root[data-theme='light'] #cards strong { color: var(--primary); }

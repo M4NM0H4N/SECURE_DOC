@@ -1,5 +1,5 @@
 import { api, el, tpath, apiUrl } from './api.js';
-import { statusBadge, formatDate } from './format.js';
+import { statusBadge, formatDate, progress } from './format.js';
 import { requireUser, showAlert, hideAlert } from './layout.js';
 
 
@@ -32,21 +32,6 @@ function addListTools(anchor, getBase, reload) {
 
 const user = await requireUser(['STUDENT']);
 if (user) init();
-
-// Progress track shown on every request card. Generic stages: the exact approval chain is configured per
-// institution, but every request moves Submitted -> Review -> Approved -> Issued (or stops at Rejected).
-const STAGES = ['Submitted', 'Review', 'Approved', 'Issued'];
-function progress(status) {
-  const at = { PENDING: 0, NEEDS_INFO: 0, UNDER_REVIEW: 1, APPROVED: 2, FULFILLED: 3, REJECTED: 1 }[status] ?? 0;
-  const ol = el('ol', { class: 'track', 'aria-label': 'Progress' });
-  STAGES.forEach((label, i) => {
-    let cls = '';
-    if (status === 'FULFILLED' || i < at) cls = 'done';
-    else if (i === at) cls = status === 'REJECTED' ? 'stop' : 'now';
-    ol.append(el('li', { class: cls, text: status === 'REJECTED' && i === at ? 'Rejected' : label }));
-  });
-  return ol;
-}
 
 function init() {
   document.getElementById('content').classList.remove('hidden');

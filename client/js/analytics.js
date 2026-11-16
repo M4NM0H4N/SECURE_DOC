@@ -22,7 +22,7 @@ function init() {
       const fill = el('div', { class: 'bar-fill' });
       fill.style.width = `${Math.max(2, Math.round((n / max) * 100))}%`;
       fill.style.height = '10px';
-      fill.style.background = 'var(--primary)';
+      fill.style.background = 'linear-gradient(90deg, var(--violet), var(--cyan))';
       fill.style.borderRadius = '5px';
       host.append(el('div', { class: 'stack' }, el('div', { class: 'req-head' }, el('span', { text: label }), el('strong', { text: String(n) })), fill));
     }

@@ -24,3 +24,10 @@ The copy describes only what exists: tamper-evident hash-chained audit log, priv
 
 ## Accessibility and tests
 WCAG 2.1 A/AA scans (axe) run on every page in both themes (`e2e/a11y.spec.js`); layout checks at 320, 375 and 768px (`e2e/responsive.spec.js`). The theme is selected in tests the same way a person selects it (saved choice).
+
+## Phase C (staff, detail and analytics screens)
+- **Clerk / HOD / Principal dashboards:** welcome card, live status tiles (Pending, Under review, Approved, Fulfilled, Rejected). Each tile is a button that filters the list below and shows which filter is active (`aria-pressed`). Request cards carry the same progress track as the student view.
+- **Shared progress track:** `progress()` in `js/format.js` (Submitted → Review → Approved → Issued, or stops at Rejected).
+- **Request details:** progress track at the top and a history timeline whose dot colour follows the status reached (violet pending, cyan under review, lime approved, green fulfilled, red rejected, amber needs information); the document card has a cyan accent.
+- **Analytics:** summary figures as tiles; bars use a violet-to-cyan gradient.
+- **Admin, audit, settings, account pages:** pick up the new theme and sidebar automatically; their tables and forms use the same tokens.
