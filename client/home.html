@@ -11,11 +11,111 @@
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/landing.css">
   <script src="/js/theme.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
-  <main id="main" class="center-screen"><p class="muted">Redirecting...</p></main>
+  <div id="landing" class="landing hidden">
+    <header class="land-nav">
+      <a class="brand" href="./">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 4 6v6c0 4.5 3.2 7.8 8 9 4.8-1.2 8-4.5 8-9V6l-8-3z"/><path d="m9 12 2 2 4-4"/></svg>
+        <span>DocFlow</span>
+      </a>
+      <nav class="land-links" aria-label="Main">
+        <a href="#how">How it works</a>
+        <a href="#layers">Three layers</a>
+        <a href="verify.html">Verify a document</a>
+        <a class="btn btn--ghost btn--sm" href="login.html">Sign in</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-text">
+          <p class="pill-badge">Secure &middot; Transparent &middot; Trusted</p>
+          <h1 id="hero-title" class="hero-title">
+            <span class="t-white">Request.</span>
+            <span class="t-lime">Approve.</span>
+            <span class="t-cyan">Prove.</span>
+          </h1>
+          <p class="hero-lead" id="brand-tagline">A secure and transparent document workflow for your institution.</p>
+          <ul class="tick-list">
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Every step tracked</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Every action logged</li>
+            <li><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>Every document verifiable</li>
+          </ul>
+          <div class="hero-cta">
+            <a class="btn" href="login.html">Get started</a>
+            <a class="btn btn--ghost" href="#how">Learn more</a>
+          </div>
+        </div>
+
+        <div class="hero-art">
+          <svg class="stack-art" viewBox="0 0 520 570" role="img" aria-label="Three glass layers labelled Identity, Validation and Proof, topped by a check mark">
+            <defs>
+              <linearGradient id="gLime" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d4f7a0"/><stop offset="1" stop-color="#a6e35b"/></linearGradient>
+              <linearGradient id="gLimeSide" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7fb83f"/><stop offset="1" stop-color="#4c7a1f"/></linearGradient>
+              <linearGradient id="gViolet" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#a99bff"/><stop offset="1" stop-color="#7657ff"/></linearGradient>
+              <linearGradient id="gVioletSide" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5b3fe0"/><stop offset="1" stop-color="#34208f"/></linearGradient>
+              <linearGradient id="gCyan" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8fe7ff"/><stop offset="1" stop-color="#20cfff"/></linearGradient>
+              <linearGradient id="gCyanSide" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1a9fc4"/><stop offset="1" stop-color="#0d5c78"/></linearGradient>
+              <filter id="glow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <radialGradient id="gFloor" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#20cfff" stop-opacity="0.35"/><stop offset="1" stop-color="#20cfff" stop-opacity="0"/></radialGradient>
+            </defs>
+            <ellipse cx="260" cy="525" rx="235" ry="36" fill="url(#gFloor)"/>
+            <g class="layer layer-3">
+              <polygon points="110,390,260,465,260,505,110,430" fill="url(#gCyanSide)"/>
+              <polygon points="260,465,410,390,410,430,260,505" fill="#0f7191"/>
+              <polygon points="260,315,410,390,260,465,110,390" fill="url(#gCyan)" fill-opacity="0.93" stroke="#bff3ff" stroke-opacity="0.85" stroke-width="2"/>
+              <text class="layer-label" x="124" y="424" transform="rotate(26.57 124 424)">Proof</text>
+              <path d="M236 384h48M236 398h34" stroke="#06485f" stroke-width="6" stroke-linecap="round" fill="none"/>
+            </g>
+            <g class="layer layer-2">
+              <polygon points="110,280,260,355,260,395,110,320" fill="url(#gVioletSide)"/>
+              <polygon points="260,355,410,280,410,320,260,395" fill="#3e2aa8"/>
+              <polygon points="260,205,410,280,260,355,110,280" fill="url(#gViolet)" fill-opacity="0.93" stroke="#d6cfff" stroke-opacity="0.85" stroke-width="2"/>
+              <text class="layer-label" x="124" y="314" transform="rotate(26.57 124 314)">Validation</text>
+              <path d="M244 280l11 11 21-23" stroke="#1d1250" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+            </g>
+            <g class="layer layer-1">
+              <polygon points="110,170,260,245,260,285,110,210" fill="url(#gLimeSide)"/>
+              <polygon points="260,245,410,170,410,210,260,285" fill="#5e902b"/>
+              <polygon points="260,95,410,170,260,245,110,170" fill="url(#gLime)" fill-opacity="0.93" stroke="#efffd2" stroke-opacity="0.85" stroke-width="2"/>
+              <text class="layer-label dark" x="124" y="204" transform="rotate(26.57 124 204)">Identity</text>
+              <circle cx="260" cy="158" r="10" fill="#2c4510"/><path d="M241 184a19 12 0 0 1 38 0z" fill="#2c4510"/>
+            </g>
+            <path class="check-mark" d="M212 54l32 32 70-80" fill="none" stroke="#a6e35b" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+          </svg>
+          <p class="layers-count"><strong>3</strong><span>Layers<br>of Trust</span></p>
+        </div>
+      </section>
+
+      <section id="how" class="band" aria-labelledby="how-title">
+        <h2 id="how-title" class="band-title">How it <span class="t-lime">works</span></h2>
+        <ol class="steps">
+          <li class="step-card"><span class="step-no">1</span><h3>Request</h3><p>A student asks for an official document and states the purpose. It is logged at once.</p></li>
+          <li class="step-card"><span class="step-no">2</span><h3>Review</h3><p>A clerk of the student's department checks the request and moves it forward.</p></li>
+          <li class="step-card"><span class="step-no">3</span><h3>Approve</h3><p>The head of department approves, or rejects with a written reason the student can read.</p></li>
+          <li class="step-card"><span class="step-no">4</span><h3>Issue &amp; verify</h3><p>The clerk uploads the document. The student downloads it, and anyone can verify it with its code or QR.</p></li>
+        </ol>
+      </section>
+
+      <section id="layers" class="band" aria-labelledby="layers-title">
+        <h2 id="layers-title" class="band-title">Three layers of <span class="t-cyan">trust</span></h2>
+        <div class="trust-grid">
+          <article class="trust-card trust-1"><h3>Identity <small>Who is acting?</small></h3><p>Sign-in with optional two-step codes, fixed roles, and department scope: staff only ever see their own department.</p></article>
+          <article class="trust-card trust-2"><h3>Validation <small>Is it allowed?</small></h3><p>Only legal status steps are accepted, a rejection needs a reason, and uploads are checked by their real file type.</p></article>
+          <article class="trust-card trust-3"><h3>Proof <small>Can it be verified?</small></h3><p>Every action goes into an audit log chained with hashes, so tampering is detectable. Issued documents carry a signed verification code.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer" role="contentinfo">
+      <a href="terms.html">Terms</a> <a href="privacy.html">Privacy</a> <a href="support.html">Support</a> <a href="status.html">Status</a>
+    </footer>
+  </div>
+  <p id="redirecting" class="muted center-screen">Loading...</p>
   <script type="module" src="/js/home.js"></script>
 </body>
 </html>

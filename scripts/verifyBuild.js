@@ -14,6 +14,9 @@ process.env.JWT_SECRET = process.env.JWT_SECRET || 'ci-build-check-ci-build-chec
 const root = path.resolve(__dirname, '..');
 const required = [
   'client/login.html',
+  'client/css/landing.css',
+  'client/css/dashboard.css',
+  'client/js/theme.js',
   'client/terms.html',
   'client/privacy.html',
   'client/support.html',

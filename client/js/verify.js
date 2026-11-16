@@ -34,15 +34,43 @@ async function call(path, options) {
   return body.data;
 }
 
+// Big verdict icon above the banner: a shield with a tick, a warning, or a cross.
+function verdict(kind) {
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(ns, 'svg');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  svg.setAttribute('aria-hidden', 'true');
+  svg.setAttribute('class', 'verdict verdict-' + kind);
+  const shield = document.createElementNS(ns, 'path');
+  shield.setAttribute('d', 'M12 3 4.5 6v5.5c0 4.2 3 7.4 7.5 8.5 4.5-1.1 7.5-4.3 7.5-8.5V6L12 3z');
+  const mark = document.createElementNS(ns, 'path');
+  mark.setAttribute('d', kind === 'ok' ? 'm8.5 12 2.5 2.5 4.5-5' : kind === 'warn' ? 'M12 8v5M12 16v.5' : 'm9 9 6 6M15 9l-6 6');
+  svg.append(shield, mark);
+  return svg;
+}
+
 async function start() {
-  if (!slug || !code) throw Object.assign(new Error('This link is incomplete.'), { status: 400 });
+  if (!slug) throw Object.assign(new Error('This link is incomplete.'), { status: 400 });
+  if (!code) {
+    // No code in the address: let the person type or paste one (the sidebar's "Verify document" link).
+    lead.textContent = 'Enter the code printed on a document to check it.';
+    const form = document.getElementById('code-form');
+    form.classList.remove('hidden');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const value = document.getElementById('code-input').value.trim();
+      if (value) location.search = '?code=' + encodeURIComponent(value);
+    });
+    return;
+  }
   const info = await call('', { method: 'GET' });
   lead.textContent = info.institution;
   const [text, cls] = STATUS[info.status] || ['Unknown status.', 'alert'];
   const banner = document.createElement('div');
   banner.className = cls;
   banner.textContent = text;
-  result.replaceChildren(banner, line('Document', info.documentType || 'Official document'), line('Issued', new Date(info.issuedAt).toLocaleDateString(undefined, { dateStyle: 'long' })), line('Version', String(info.version)));
+  const kind = info.status === 'VALID' ? 'ok' : info.status === 'SUPERSEDED' ? 'warn' : 'bad';
+  result.replaceChildren(verdict(kind), banner, line('Document', info.documentType || 'Official document'), line('Issued', new Date(info.issuedAt).toLocaleDateString(undefined, { dateStyle: 'long' })), line('Version', String(info.version)));
   result.classList.remove('hidden');
   check.classList.remove('hidden');
 }

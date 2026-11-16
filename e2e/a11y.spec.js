@@ -1,4 +1,5 @@
 'use strict';
+/* global localStorage -- used inside addInitScript, which runs in the browser page */
 
 const { test, expect } = require('@playwright/test');
 const AxeBuilder = require('@axe-core/playwright').default;
@@ -14,11 +15,14 @@ async function scan(page, label) {
   expect(summary, `${label}: accessibility violations`).toEqual([]);
 }
 
-const PUBLIC_PAGES = ['/login.html', '/register.html', '/signup.html', '/forgot-password.html', '/terms.html', '/privacy.html', '/support.html', '/status.html'];
+const PUBLIC_PAGES = ['/', '/verify.html', '/login.html', '/register.html', '/signup.html', '/forgot-password.html', '/terms.html', '/privacy.html', '/support.html', '/status.html'];
 
 for (const scheme of ['light', 'dark']) {
   test.describe(`${scheme} mode`, () => {
-    test.use({ colorScheme: scheme });
+    // The theme is a saved choice in the browser (localStorage), exactly as the toggle stores it.
+    test.beforeEach(async ({ page }) => {
+      await page.addInitScript((t) => localStorage.setItem('docflow-theme', t), scheme);
+    });
 
     for (const p of PUBLIC_PAGES) {
       test(`public page ${p}`, async ({ page }) => {
@@ -43,7 +47,7 @@ for (const scheme of ['light', 'dark']) {
     ];
     for (const [who, p] of SIGNED_IN) {
       test(`${who} page ${p}`, async ({ browser }) => {
-        const { context, page } = await signIn(browser, who);
+        const { context, page } = await signIn(browser, who, scheme);
         await page.goto(path(p));
         await page.waitForLoadState('networkidle');
         await page.locator('#content:not(.hidden), main').first().waitFor();

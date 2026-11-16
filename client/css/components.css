@@ -190,3 +190,49 @@
 }
 .site-footer a { margin-inline: var(--space-3); display: inline-block; min-height: 24px; }
 .legal { max-width: 760px; }
+
+/* ---- Side navigation ---- */
+.side-nav { display: flex; flex-direction: column; gap: var(--space-1); }
+.side-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 0.3s var(--ease), color 0.3s var(--ease);
+}
+.side-link:hover { background: var(--field); color: var(--text); }
+.side-link[aria-current='page'] { background: var(--primary); color: var(--primary-contrast); box-shadow: var(--glow-primary); }
+.nav-ico { flex: none; width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+@media (min-width: 1100px) {
+  body.has-sidebar { padding-left: 264px; }
+  body.has-sidebar .topbar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 264px;
+    overflow-y: auto;
+    border-bottom: 0;
+    border-right: 1px solid var(--border);
+    background: var(--surface);
+  }
+  body.has-sidebar .topbar-wrap { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; min-height: 100%; padding-block: var(--space-4); }
+  body.has-sidebar .topbar-inner { min-height: 0; padding-bottom: var(--space-4); }
+  body.has-sidebar .nav-menu { display: flex; flex-direction: column; align-items: stretch; gap: var(--space-3); border-top: 0; padding: 0; flex: 1; }
+  body.has-sidebar .nav-user { order: 2; margin-top: auto; padding: var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--field); }
+  body.has-sidebar .nav-menu > .btn,
+  body.has-sidebar .nav-menu > a.btn { order: 3; width: 100%; justify-content: flex-start; }
+  body.has-sidebar .container { margin-inline: auto; }
+}
+
+/* Tablets (768-1099px): the top bar menu wraps onto several lines instead of widening the page */
+@media (min-width: 768px) and (max-width: 1099px) {
+  .topbar-wrap { align-items: flex-start; padding-block: var(--space-2); }
+  .nav-menu { flex: 1; min-width: 0; flex-wrap: wrap; justify-content: flex-end; gap: var(--space-2); }
+  .side-nav { flex-direction: row; flex-wrap: wrap; }
+  .side-link { padding: 0 var(--space-3); }
+}

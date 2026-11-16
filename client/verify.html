@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="/css/tokens.css">
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/components.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
   <script src="/js/theme.js"></script>
 </head>
 <body>
@@ -22,6 +23,13 @@
         <h1>Document verification</h1>
         <p class="muted" id="lead">Checking...</p>
       </div>
+      <form id="code-form" class="hidden stack" novalidate>
+        <div class="field">
+          <label for="code-input">Verification code</label>
+          <input class="input" id="code-input" type="text" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="200" placeholder="Paste the code printed on the document">
+        </div>
+        <button class="btn" type="submit">Verify</button>
+      </form>
       <div id="result" class="hidden stack" role="status"></div>
       <div id="check" class="hidden stack">
         <h2>Is the file you hold the genuine one?</h2>

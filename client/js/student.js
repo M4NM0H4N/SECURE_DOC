@@ -33,6 +33,21 @@ function addListTools(anchor, getBase, reload) {
 const user = await requireUser(['STUDENT']);
 if (user) init();
 
+// Progress track shown on every request card. Generic stages: the exact approval chain is configured per
+// institution, but every request moves Submitted -> Review -> Approved -> Issued (or stops at Rejected).
+const STAGES = ['Submitted', 'Review', 'Approved', 'Issued'];
+function progress(status) {
+  const at = { PENDING: 0, NEEDS_INFO: 0, UNDER_REVIEW: 1, APPROVED: 2, FULFILLED: 3, REJECTED: 1 }[status] ?? 0;
+  const ol = el('ol', { class: 'track', 'aria-label': 'Progress' });
+  STAGES.forEach((label, i) => {
+    let cls = '';
+    if (status === 'FULFILLED' || i < at) cls = 'done';
+    else if (i === at) cls = status === 'REJECTED' ? 'stop' : 'now';
+    ol.append(el('li', { class: cls, text: status === 'REJECTED' && i === at ? 'Rejected' : label }));
+  });
+  return ol;
+}
+
 function init() {
   document.getElementById('content').classList.remove('hidden');
   document.getElementById('welcome').textContent = `Welcome, ${user.name}`;
@@ -74,6 +89,25 @@ function init() {
   purpose.addEventListener('input', () => {
     counter.textContent = `${purpose.value.length}/500`;
   });
+
+  // Live counts for the stats row: one small request per status, so the numbers are always exact.
+  const ALL = ['PENDING', 'UNDER_REVIEW', 'NEEDS_INFO', 'APPROVED', 'FULFILLED', 'REJECTED'];
+  async function loadStats() {
+    const box = document.getElementById('stats');
+    try {
+      const totals = await Promise.all(ALL.map((s) => api(`/requests?status=${s}&limit=1`).then((r) => r.total)));
+      const n = Object.fromEntries(ALL.map((s, i) => [s, totals[i]]));
+      const tile = (cls, value, label) => el('div', { class: `stat ${cls}` }, el('strong', { text: String(value) }), el('span', { text: label }));
+      box.replaceChildren(
+        tile('stat-lime', totals.reduce((a, b) => a + b, 0), 'Total requests'),
+        tile('stat-violet', n.PENDING + n.UNDER_REVIEW + n.NEEDS_INFO, 'In progress'),
+        tile('stat-cyan', n.APPROVED + n.FULFILLED, 'Approved'),
+        tile('stat-red', n.REJECTED, 'Rejected')
+      );
+    } catch (_e) {
+      box.replaceChildren(); // the list below still works without the numbers
+    }
+  }
 
   let page = 1;
   const tools = addListTools(state, () => new URLSearchParams(), () => load());
@@ -123,7 +157,8 @@ function init() {
       { class: 'card req-card' },
       el('div', { class: 'req-head' }, el('h3', { text: r.documentType }), statusBadge(r.status)),
       el('p', { class: 'muted', text: r.purpose }),
-      el('p', { class: 'hint', text: `Submitted ${formatDate(r.createdAt)}` })
+      el('p', { class: 'hint', text: `Submitted ${formatDate(r.createdAt)}` }),
+      progress(r.status)
     );
     if (r.status === 'REJECTED' && r.rejectionReason) {
       node.append(el('p', { class: 'alert alert--error', text: `Reason: ${r.rejectionReason}` }));
@@ -185,6 +220,7 @@ function init() {
       form.reset();
       counter.textContent = '0/500';
       showAlert(alertBox, 'Request submitted. Track its status below.', 'success');
+      loadStats();
       await load();
     } catch (err) {
       const detail = err.errors?.map((x) => x.message).join(' ');
@@ -195,5 +231,6 @@ function init() {
     }
   });
 
+  loadStats();
   load();
 }

@@ -12,15 +12,27 @@
   <link rel="stylesheet" href="/css/base.css">
   <link rel="stylesheet" href="/css/components.css">
   <link rel="stylesheet" href="/css/requests.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
   <script src="/js/theme.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
   <header id="topbar"></header>
   <main id="main" class="container page">
-    <h1 id="welcome">Loading...</h1>
+    <section class="card welcome-card" aria-labelledby="welcome">
+      <div>
+        <h1 id="welcome">Loading...</h1>
+        <p class="muted">Ready to continue?</p>
+      </div>
+      <div class="quick-actions">
+        <a class="quick-card" href="#new-request"><svg class="q-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l4 4v14H7z"/><path d="M12 11v6M9 14h6"/></svg><span>New request</span></a>
+        <a class="quick-card q-violet" href="#my-requests"><svg class="q-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10v18H7z"/><path d="M10 8h4M10 12h4M10 16h2"/></svg><span>My requests</span></a>
+        <a class="quick-card q-cyan" href="../verify.html"><svg class="q-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 4.5 6v5.5c0 4.2 3 7.4 7.5 8.5 4.5-1.1 7.5-4.3 7.5-8.5V6L12 3z"/><path d="m9 12 2 2 4-4"/></svg><span>Verify document</span></a>
+      </div>
+    </section>
     <div id="content" class="stack hidden">
-      <section class="card stack">
+      <section id="stats" class="stats-row" aria-label="Your request statistics"></section>
+      <section id="new-request" class="card stack">
         <h2>Request a document</h2>
         <div id="form-alert" class="hidden" role="alert"></div>
         <form id="request-form" class="stack" novalidate>
@@ -36,7 +48,7 @@
           <button class="btn" id="submit" type="submit">Submit request</button>
         </form>
       </section>
-      <section class="stack">
+      <section id="my-requests" class="stack">
         <h2>My requests</h2>
         <div id="list-state" class="state"></div>
         <div id="request-list" class="grid"></div>
