@@ -3,3 +3,4 @@
 body { background: #fff !important; color: #000 !important; }
 .card { box-shadow: none !important; border: 1px solid #999 !important; break-inside: avoid; }
 .bar-fill { background: #333 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.card, .table th, .table td { background: #fff !important; color: #000 !important; }

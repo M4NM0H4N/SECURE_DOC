@@ -1,6 +1,9 @@
-/* Design tokens. Light by default, dark follows the OS (ui-ux-pro-max). */
+/* DocFlow design tokens. Dark is the default theme; light is an option chosen with the toggle
+   (html[data-theme="light"], set early by /js/theme.js and remembered in the browser).
+   Brand colours: lime = actions and verified, violet = identity and validation, cyan = proof and data. */
 :root {
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Sora', 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -10,9 +13,10 @@
   --space-6: 2rem;
   --space-7: 3rem;
 
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
 
   --text-sm: 0.875rem;
   --text-base: 1rem;
@@ -22,50 +26,69 @@
   --touch: 48px;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 
-  /* Palette (HSL) */
-  --bg: hsl(222 40% 97%);
-  --bg-grad: linear-gradient(135deg, hsl(228 80% 96%) 0%, hsl(262 60% 96%) 100%);
-  --surface: hsl(0 0% 100% / 0.85);
-  --surface-solid: hsl(0 0% 100%);
-  --border: hsl(222 20% 88%);
-  --text: hsl(224 30% 14%);
-  --text-muted: hsl(222 14% 40%);
-  --primary: hsl(234 70% 52%);
-  --primary-hover: hsl(234 70% 45%);
-  --primary-contrast: hsl(0 0% 100%);
-  --focus: hsl(234 90% 65%);
-  --danger: hsl(0 68% 42%);
-  --danger-bg: hsl(0 80% 96%);
-  --success: hsl(152 60% 28%);
-  --success-bg: hsl(152 60% 94%);
-  --warn: hsl(32 90% 32%);
-  --warn-bg: hsl(40 95% 92%);
-  --info: hsl(210 80% 36%);
-  --info-bg: hsl(210 90% 94%);
-  --shadow: 0 10px 30px -12px hsl(224 40% 20% / 0.25);
+  /* ---- Dark theme (default) ---- */
+  --lime: #a6e35b;
+  --violet: #7657ff;
+  --cyan: #20cfff;
+
+  --bg: #121212;
+  --bg-grad:
+    radial-gradient(900px 520px at 88% -8%, hsl(255 100% 67% / 0.16), transparent 62%),
+    radial-gradient(720px 420px at -6% 104%, hsl(86 70% 62% / 0.1), transparent 60%),
+    radial-gradient(600px 360px at 50% 120%, hsl(191 100% 56% / 0.07), transparent 60%);
+  --surface: #1c1c1c;
+  --surface-solid: #1c1c1c;
+  --field: #151515;
+  --border: #2e2e33;
+  --text: #f2f2f2;
+  --text-muted: #a9a9b4;
+  --primary: var(--lime);
+  --primary-hover: #b9ee77;
+  --primary-contrast: #0f140a;
+  --focus: var(--cyan);
+  /* Text-safe tints (the raw violet is only 3.7:1 on a dark card, so text uses the lighter tint) */
+  --violet-text: #a99bff;
+  --cyan-text: #20cfff;
+  --danger: #ff8080;
+  --danger-bg: hsl(0 35% 16%);
+  --success: #3fe0a5;
+  --success-bg: hsl(160 40% 13%);
+  --warn: #fbbf24;
+  --warn-bg: hsl(40 45% 14%);
+  --info: #20cfff;
+  --info-bg: hsl(191 55% 13%);
+  --shadow: 0 14px 40px -18px hsl(0 0% 0% / 0.85), 0 0 0 1px hsl(0 0% 100% / 0.02);
+  --glow-primary: 0 0 26px -6px hsl(86 70% 62% / 0.55);
+  --glow-violet: 0 0 30px -8px hsl(255 100% 67% / 0.55);
+  --glow-cyan: 0 0 30px -8px hsl(191 100% 56% / 0.5);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: hsl(226 30% 9%);
-    --bg-grad: linear-gradient(135deg, hsl(228 35% 11%) 0%, hsl(262 30% 12%) 100%);
-    --surface: hsl(226 25% 15% / 0.7);
-    --surface-solid: hsl(226 25% 14%);
-    --border: hsl(226 18% 26%);
-    --text: hsl(220 25% 94%);
-    --text-muted: hsl(222 14% 70%);
-    --primary: hsl(234 85% 70%);
-    --primary-hover: hsl(234 85% 76%);
-    --primary-contrast: hsl(226 40% 10%);
-    --focus: hsl(234 95% 78%);
-    --danger: hsl(0 85% 72%);
-    --danger-bg: hsl(0 40% 17%);
-    --success: hsl(152 55% 65%);
-    --success-bg: hsl(152 35% 15%);
-    --warn: hsl(38 90% 68%);
-    --warn-bg: hsl(36 40% 15%);
-    --info: hsl(210 90% 72%);
-    --info-bg: hsl(212 40% 16%);
-    --shadow: 0 10px 30px -10px hsl(0 0% 0% / 0.5);
-  }
+/* ---- Light theme (option) ---- */
+:root[data-theme='light'] {
+  --bg: #f4f7fb;
+  --bg-grad: linear-gradient(135deg, #eef3ff 0%, #f6f1ff 100%);
+  --surface: #ffffff;
+  --surface-solid: #ffffff;
+  --field: #ffffff;
+  --border: #dde3ee;
+  --text: #161a22;
+  --text-muted: #566074;
+  --primary: #2563d9;
+  --primary-hover: #1d52b8;
+  --primary-contrast: #ffffff;
+  --focus: #5b3fe0;
+  --violet-text: #5b3fe0;
+  --cyan-text: #0a6f91;
+  --danger: #b42323;
+  --danger-bg: hsl(0 80% 96%);
+  --success: #17703f;
+  --success-bg: hsl(152 60% 94%);
+  --warn: #8a5a00;
+  --warn-bg: hsl(40 95% 92%);
+  --info: #0a6f91;
+  --info-bg: hsl(195 80% 94%);
+  --shadow: 0 10px 30px -14px hsl(224 40% 20% / 0.25);
+  --glow-primary: none;
+  --glow-violet: none;
+  --glow-cyan: none;
 }

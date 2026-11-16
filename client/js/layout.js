@@ -44,6 +44,29 @@ function bell() {
   return link;
 }
 
+// Light/dark switch. The choice is remembered in this browser only (see /js/theme.js).
+function themeToggle() {
+  const btn = el('button', { class: 'btn btn--ghost btn--sm', type: 'button' });
+  const isLight = () => document.documentElement.getAttribute('data-theme') === 'light';
+  const sync = () => {
+    btn.textContent = isLight() ? 'Dark mode' : 'Light mode';
+    btn.setAttribute('aria-label', isLight() ? 'Switch to dark mode' : 'Switch to light mode');
+  };
+  btn.addEventListener('click', () => {
+    const next = isLight() ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', next);
+    try {
+      localStorage.setItem('docflow-theme', next);
+    } catch (_e) {
+      /* not remembered: still switched for this visit */
+    }
+    applyBranding();
+    sync();
+  });
+  sync();
+  return btn;
+}
+
 // A table wider than its card scrolls sideways. Keyboard users must be able to reach and scroll it,
 // so each wrapper becomes a focusable, named region (axe: scrollable-region-focusable).
 function makeTablesReachable() {
@@ -102,6 +125,7 @@ function renderTopbar(user) {
       user.department ? el('span', { class: 'muted', text: user.department }) : ''
     ),
     bell(),
+    themeToggle(),
     el('a', { class: 'btn btn--ghost btn--sm', href: tpath('/account.html'), text: 'Account' }),
     logout
   );

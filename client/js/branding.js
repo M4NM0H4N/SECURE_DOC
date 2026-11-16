@@ -22,13 +22,15 @@ export async function applyBranding() {
   try {
     const b = await fetchBranding();
     if (!b) return;
-    // The colour was checked on the server to be readable on white, so it is used in light mode only;
-    // dark mode keeps its own tuned palette.
-    if (b.color && !window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      const root = document.documentElement.style;
+    // The colour was checked on the server to be readable on white, so it is used in the light theme only;
+    // the dark theme keeps its own brand palette (lime, violet, cyan).
+    const root = document.documentElement.style;
+    if (b.color && document.documentElement.getAttribute('data-theme') === 'light') {
       root.setProperty('--primary', b.color);
       root.setProperty('--primary-hover', darken(b.color, 0.85));
       root.setProperty('--primary-contrast', '#ffffff');
+    } else {
+      for (const p of ['--primary', '--primary-hover', '--primary-contrast']) root.removeProperty(p);
     }
     const logoUrl = b.hasLogo ? '/api/t/' + m[1] + '/branding/logo?v=' + b.logoVersion : null;
     for (const brand of document.querySelectorAll('.brand')) {

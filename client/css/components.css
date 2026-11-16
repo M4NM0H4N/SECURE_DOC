@@ -78,9 +78,10 @@
   color: var(--primary-contrast);
   background: var(--primary);
   border: 1px solid transparent;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   cursor: pointer;
   text-decoration: none;
+  box-shadow: var(--glow-primary);
   transition: background 0.3s var(--ease), transform 0.3s var(--ease), box-shadow 0.3s var(--ease);
 }
 .btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
@@ -91,9 +92,10 @@
   color: var(--text);
   background: transparent;
   border-color: var(--border);
+  box-shadow: none;
 }
 .btn--ghost:hover { background: var(--surface-solid); }
-.btn--danger { background: var(--danger); color: var(--surface-solid); }
+.btn--danger { background: var(--danger); color: var(--surface-solid); box-shadow: none; }
 .btn--sm { padding: 0 var(--space-4); }
 
 /* ---- Forms ---- */
@@ -106,7 +108,7 @@
   padding: 0 var(--space-3);
   font: inherit;
   color: var(--text);
-  background: var(--surface-solid);
+  background: var(--field);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   transition: border-color 0.3s var(--ease), box-shadow 0.3s var(--ease);
