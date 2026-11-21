@@ -1,4 +1,6 @@
-# Demonstration Guide
+# Demonstration Guide (older version)
+
+> The complete, current guide is [DEMO_GUIDE.md](DEMO_GUIDE.md). This page is kept for reference.
 
 A step-by-step script for the final demonstration, plus talking points for the presentation.
 
